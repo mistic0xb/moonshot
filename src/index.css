@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+body {
+  font-family: "Stack Sans Text";
+  background-color: #02000d;
+}
+
+@theme {
+  --breakpoint-proj: 2700px;
+  --color-blackish: #02000d;
+  --color-card-bg: #0e0d12;
+  --color-border-sky: #14141c;
+  --color-sky-text: #c4acfd;
+}
+
+@layer components {
+  .card-style {
+    @apply bg-card-bg border border-border-sky rounded-sm;
+  }
+}
+
+/* ========== Markdown Dark Theme Fix ========== */
+
+.markdown-body {
+  color: #e5e7eb; /* text-gray-300 */
+  line-height: 1.7;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  color: white;
+  font-weight: 700;
+  margin-top: 1.2em;
+  margin-bottom: 0.4em;
+}
+
+.markdown-body p {
+  color: #d1d5db; /* text-gray-300 */
+  margin: 0.8em 0;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin-left: 1.5em;
+  color: #d1d5db;
+}
+
+.markdown-body li {
+  margin: 0.3em 0;
+}
+
+.markdown-body strong {
+  color: white;
+}
+
+.markdown-body a {
+  color: #38bdf8; /* sky-400 */
+}
+
+.markdown-body code {
+  background: #1e293b; /* slate-800 */
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.markdown-body pre {
+  background: #0f172a; /* slate-900 */
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+/* Slider styles */
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  cursor: pointer;
+  border: 2px solid #1f2937;
+}
+
+.slider::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  cursor: pointer;
+  border: 2px solid #1f2937;
+}
+
+.slider::-webkit-slider-track {
+  background: #374151;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.slider::-moz-range-track {
+  background: #374151;
+  height: 8px;
+  border-radius: 4px;
+  border: none;
+}
