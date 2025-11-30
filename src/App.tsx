@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
-import CreateIdea from "./pages/CreateMoonshot";
+import CreateMoonshot from "./pages/CreateMoonshot";
 import Explore from "./pages/Explore";
 import Query from "./pages/Query";
 import Dashboard from "./pages/Dashboard";
@@ -15,7 +15,7 @@ function App() {
           <Navbar />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/create" element={<CreateIdea />} />
+            <Route path="/create" element={<CreateMoonshot />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/moonshot/:id" element={<Query />} />
             <Route path="/dashboard" element={<Dashboard />} />
