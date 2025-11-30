@@ -1,4 +1,4 @@
-import { SimplePool, finalizeEvent, type Event } from "nostr-tools";
+import { SimplePool, type Event } from "nostr-tools";
 import type { Moonshot, Interest, ProofOfWorkLink } from "../types/types";
 import { DEFAULT_RELAYS } from "./relayConfig";
 import { v4 as uuidv4 } from 'uuid';
@@ -292,7 +292,7 @@ export async function fetchInterests(moonshotId: string): Promise<Interest[]> {
                     }
 
                     if (moonshotTag[1] !== moonshotId) {
-                            console.log(`Skipping interest - expected ${moonshotId}, got ${moonshotTag[1]}`);
+                        console.log(`Skipping interest - expected ${moonshotId}, got ${moonshotTag[1]}`);
                         return;
                     }
 
