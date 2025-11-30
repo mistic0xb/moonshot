@@ -1,4 +1,3 @@
-import { BiUpvote } from "react-icons/bi";
 import { FiHeart } from "react-icons/fi";
 import type { Moonshot } from "../types/types";
 import { useEffect, useState } from "react";
