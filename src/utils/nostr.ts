@@ -101,6 +101,7 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
 
                     const moonshot: Moonshot = {
                         id: dTag[1],
+                        eventId: event.id,
                         title: titleTag[1],
                         content: event.content,
                         budget: budgetTag?.[1] || "TBD",
@@ -109,8 +110,6 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
                         status: (statusTag?.[1] as any) || "open",
                         creatorPubkey: event.pubkey,
                         createdAt: event.created_at * 1000,
-                        upvotes: 0, // Will be calculated separately
-                        interests: 0, // Will be calculated separately
                     };
 
                     moonshots.push(moonshot);
@@ -167,6 +166,7 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
 
                     const moonshot: Moonshot = {
                         id: dTag[1],
+                        eventId: event.id,
                         title: titleTag[1],
                         content: event.content,
                         budget: budgetTag?.[1] || "TBD",
@@ -175,8 +175,6 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
                         status: (statusTag?.[1] as any) || "open",
                         creatorPubkey: event.pubkey,
                         createdAt: event.created_at * 1000,
-                        upvotes: 0,
-                        interests: 0,
                     };
 
                     console.log("Moonshot found:", moonshot);
@@ -312,122 +310,118 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
 //     });
 // }
 
-// // Publish upvote (kind 7 reaction)
-// export async function publishUpvote(
-//     moonshotEventId: string,
-//     creatorPubkey: string
-// ): Promise<void> {
-//     if (!window.nostr) {
-//         throw new Error("Nostr extension not found");
-//     }
+// Check if current user has upvoted
+export async function checkUserUpvote(
+    moonshotEventId: string,
+    userPubkey: string
+): Promise<boolean> {
+    const pool = getPool();
 
-//     const event = {
-//         kind: 7,
-//         created_at: Math.floor(Date.now() / 1000),
-//         tags: [
-//             ["e", moonshotEventId],
-//             ["p", creatorPubkey],
-//         ],
-//         content: "+",
-//     };
+    return new Promise(resolve => {
+        let hasUpvoted = false;
+        let sub: any;
 
-//     const signedEvent = await window.nostr.signEvent(event);
-//     const pool = getPool();
-//     const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
+        const timeout = setTimeout(() => {
+            if (sub) sub.close();
+            resolve(hasUpvoted);
+        }, 3000);
 
-//     await Promise.race([
-//         Promise.all(pubs),
-//         new Promise(resolve => setTimeout(resolve, 5000))
-//     ]);
+        const filter = {
+            kinds: [7],
+            "#e": [moonshotEventId],
+            authors: [userPubkey],
+            limit: 10
+        };
 
-//     console.log("Upvote published");
-// }
+        sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
+            onevent(event: Event) {
+                // Get the latest reaction from this user
+                if (event.content === "+") {
+                    hasUpvoted = true;
+                } else if (event.content === "-") {
+                    hasUpvoted = false;
+                }
+            },
+            oneose() {
+                clearTimeout(timeout);
+                if (sub) sub.close();
+                resolve(hasUpvoted);
+            },
+        });
+    });
+}
 
-// // Fetch upvote count for a moonshot
-// export async function fetchUpvoteCount(moonshotEventId: string): Promise<number> {
-//     const pool = getPool();
+// Toggle upvote (upvote or un-upvote)
+export async function toggleUpvote(
+    moonshotEventId: string,
+    creatorPubkey: string,
+    currentlyUpvoted: boolean
+): Promise<void> {
+    if (!window.nostr) {
+        throw new Error("Nostr extension not found");
+    }
 
-//     return new Promise(resolve => {
-//         const upvoters = new Set<string>();
-//         let sub: any;
+    const event = {
+        kind: 7,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [
+            ["e", moonshotEventId],
+            ["p", creatorPubkey],
+        ],
+        content: currentlyUpvoted ? "-" : "+", // Toggle
+    };
 
-//         const timeout = setTimeout(() => {
-//             if (sub) sub.close();
-//             console.log("Upvote count:", upvoters.size);
-//             resolve(upvoters.size);
-//         }, 5000);
+    const signedEvent = await window.nostr.signEvent(event);
+    const pool = getPool();
+    const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
+    
+    await Promise.race([
+        Promise.all(pubs),
+        new Promise(resolve => setTimeout(resolve, 5000))
+    ]);
 
-//         const filter = {
-//             kinds: [7],
-//             "#e": [moonshotEventId],
-//             limit: 500,
-//         };
+    console.log(currentlyUpvoted ? "Upvote removed" : "Upvoted");
+}
 
-//         sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
-//             onevent(event: Event) {
-//                 if (event.content === "+") {
-//                     upvoters.add(event.pubkey);
-//                 }
-//             },
-//             oneose() {
-//                 clearTimeout(timeout);
-//                 if (sub) sub.close();
-//                 resolve(upvoters.size);
-//             },
-//         });
-//     });
-// }
+// Fetch upvote count (count unique users with latest "+" reaction)
+export async function fetchUpvoteCount(
+    moonshotEventId: string
+): Promise<number> {
+    const pool = getPool();
 
-// // Update moonshot status (publish updated event with same d tag)
-// export async function updateMoonshotStatus(
-//     moonshotId: string,
-//     newStatus: "open" | "in-progress" | "completed",
-//     acceptedBuilderNpub?: string
-// ): Promise<void> {
-//     if (!window.nostr) {
-//         throw new Error("Nostr extension not found");
-//     }
+    return new Promise(resolve => {
+        const latestReactions = new Map<string, string>(); // pubkey -> reaction
+        let sub: any;
 
-//     // First fetch the existing moonshot to get all data
-//     const existingMoonshot = await fetchMoonshotById(moonshotId);
+        const timeout = setTimeout(() => {
+            if (sub) sub.close();
+            // Count users whose latest reaction is "+"
+            const count = Array.from(latestReactions.values())
+                .filter(reaction => reaction === "+").length;
+            resolve(count);
+        }, 3000);
 
-//     if (!existingMoonshot) {
-//         throw new Error("Moonshot not found");
-//     }
+        const filter = {
+            kinds: [7],
+            "#e": [moonshotEventId],
+            limit: 500,
+        };
 
-//     const pool = getPool();
-
-//     // Build updated tags
-//     const eventTags = [
-//         ["d", moonshotId],
-//         ["t", "moonshot"],
-//         ["title", existingMoonshot.title],
-//         ["topics", ...existingMoonshot.topics],
-//         ["budget", existingMoonshot.budget],
-//         ["timeline", existingMoonshot.timeline],
-//         ["status", newStatus]
-//     ];
-
-//     if (acceptedBuilderNpub && newStatus === "in-progress") {
-//         eventTags.push(["accepted-builder", acceptedBuilderNpub]);
-//     }
-
-//     const event = {
-//         kind: 30023,
-//         created_at: Math.floor(Date.now() / 1000),
-//         tags: eventTags,
-//         content: existingMoonshot.content,
-//     };
-
-//     console.log("Updating moonshot status:", event);
-
-//     const signedEvent = await window.nostr.signEvent(event);
-//     const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
-
-//     await Promise.race([
-//         Promise.all(pubs),
-//         new Promise(resolve => setTimeout(resolve, 5000))
-//     ]);
-
-//     console.log("Moonshot status updated to:", newStatus);
-// }
+        sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
+            onevent(event: Event) {
+                const existing = latestReactions.get(event.pubkey);
+                // Keep only the latest reaction per user
+                if (!existing || event.created_at > (existing as any).created_at) {
+                    latestReactions.set(event.pubkey, event.content);
+                }
+            },
+            oneose() {
+                clearTimeout(timeout);
+                if (sub) sub.close();
+                const count = Array.from(latestReactions.values())
+                    .filter(reaction => reaction === "+").length;
+                resolve(count);
+            },
+        });
+    });
+}

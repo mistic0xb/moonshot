@@ -1,5 +1,6 @@
 export interface Moonshot {
     id: string;
+    eventId: string;
     title: string;
     content: string; // Markdown
     budget: string;
@@ -7,8 +8,6 @@ export interface Moonshot {
     topics: Array<string>,
     status: string,
     creatorPubkey: string;
-    upvotes: number;
-    interests: number;
     createdAt: number;
 }
 

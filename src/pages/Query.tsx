@@ -5,6 +5,7 @@ import UpvoteButton from "../components/UpvoteButton";
 import InterestDialog from "../components/InterestDialog";
 import type { Moonshot } from "../types/types";
 import RichTextViewer from "../components/RichTextViewer";
+import { fetchMoonshotById } from "../utils/nostr";
 
 function Query() {
   const { id } = useParams<{ id: string }>();
@@ -14,26 +15,30 @@ function Query() {
   const [showInterestDialog, setShowInterestDialog] = useState(false);
 
   useEffect(() => {
-    // TODO: Fetch moonshot by ID from Nostr
-    setTimeout(() => {
-      setLoading(false);
-    }, 800);
+    const loadMoonshot = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const fetchedMoonshot = await fetchMoonshotById(id);
+        setMoonshot(fetchedMoonshot);
+      } catch (error) {
+        console.error("Failed to fetch moonshot:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMoonshot();
   }, [id]);
 
-  const handleUpvote = async () => {
-    // TODO: Publish upvote event (kind 7)
-    console.log("Upvoting moonshot:", id);
-  };
-
   const handleInterestClick = () => {
-    // Check if user is authenticated
     if (!isAuthenticated) {
-      // Launch login dialog
       document.dispatchEvent(new CustomEvent("nlLaunch", { detail: "welcome-login" }));
       return;
     }
-
-    // User is authenticated, show interest dialog
     setShowInterestDialog(true);
   };
 
@@ -73,22 +78,50 @@ function Query() {
           <div className="card-style p-8 mb-6">
             <div className="flex justify-between items-start mb-6">
               <h1 className="text-4xl font-bold text-white">{moonshot.title}</h1>
-              <UpvoteButton initialCount={moonshot.upvotes} onUpvote={handleUpvote} />
+              <UpvoteButton
+                moonshotEventId={moonshot.eventId}
+                creatorPubkey={moonshot.creatorPubkey}
+              />
             </div>
+
+            {/* Topics */}
+            {moonshot.topics && moonshot.topics.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {moonshot.topics.map((topic, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-sky-900/20 border border-sky-500/30 text-sky-300 text-sm rounded-full"
+                  >
+                    #{topic}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <div className="flex gap-4 mb-6 flex-wrap">
               <span className="px-4 py-2 bg-sky-900/20 border border-sky-500/30 text-sky-300 text-sm font-semibold rounded">
                 {moonshot.budget} sats
               </span>
               <span className="px-4 py-2 bg-sky-900/20 border border-sky-500/30 text-sky-300 text-sm font-semibold rounded">
-                {moonshot.timeline}
+                {moonshot.timeline} months
               </span>
-              <span className="px-4 py-2 bg-sky-900/20 border border-sky-500/30 text-gray-400 text-sm rounded">
-                {moonshot.interests} interested builders
+              <span
+                className={`px-4 py-2 border text-sm font-semibold rounded ${
+                  moonshot.status === "open"
+                    ? "bg-green-900/20 border-green-500/30 text-green-300"
+                    : moonshot.status === "closed"
+                    ? "bg-red-900/20 border-red-500/30 text-red-300"
+                    : "bg-gray-800 border-gray-600 text-gray-400"
+                }`}
+              >
+                {moonshot.status}
               </span>
             </div>
 
-            <div className="text-gray-300 leading-relaxed prose prose-invert max-w-none mb-8"></div>
+            {/* Content */}
+            <div className="mb-8">
+              <RichTextViewer content={moonshot.content} />
+            </div>
 
             <button
               onClick={handleInterestClick}
