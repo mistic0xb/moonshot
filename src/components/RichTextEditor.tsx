@@ -71,6 +71,15 @@ export default function RichTextEditor({ content, onChange }: Props) {
     }, 0);
   };
 
+  const projectDescExample = `# Project Title
+A brief description of what your project does...
+
+## Features
+- Feature 1: Describe key functionality
+- Feature 2: Explain another major feature
+- Feature 3: Highlight unique aspects
+`;
+
   const ToolbarButton = ({
     onClick,
     children,
@@ -138,7 +147,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
             value={content}
             onChange={e => onChange(e.target.value)}
             className="w-full min-h-[300px] bg-blackish border border-sky-500/30 text-white p-4 rounded-lg focus:outline-none focus:border-sky-400 resize-y font-mono text-sm"
-            placeholder="Write your markdown here..."
+            placeholder={projectDescExample}
           />
         </div>
 
@@ -175,7 +184,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
                 em: ({ children }) => <em className="italic text-gray-300">{children}</em>,
               }}
             >
-              {content || "Preview will appear here..."}
+              {content || projectDescExample}
             </ReactMarkdown>
           </div>
         </div>
