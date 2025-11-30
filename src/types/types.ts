@@ -82,3 +82,10 @@ export interface NostrResponse {
     eventId?: string;
     error?: string;
 }
+
+export interface UserProfile {
+  pubkey: string;
+  name?: string;
+  picture?: string;
+  about?: string;
+}
