@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { BsGithub, BsLink45Deg, BsChat, BsCheck2Circle, BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { nip19 } from "nostr-tools";
-import type { Interest } from "../types/types";
+import type { Interest, UserProfile } from "../types/types";
 import { fetchUserProfile } from "../utils/nostr";
 
 interface BuilderInfoCardProps {
@@ -9,13 +9,6 @@ interface BuilderInfoCardProps {
   onChat: () => void;
   onAccept: () => void;
   isAccepted?: boolean;
-}
-
-interface UserProfile {
-  pubkey: string;
-  name?: string;
-  picture?: string;
-  about?: string;
 }
 
 function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfoCardProps) {
