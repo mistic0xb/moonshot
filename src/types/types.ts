@@ -22,6 +22,7 @@ export interface Interest {
     moonshotId: string; // The moonshot's d-tag
     moonshotEventId: string; // The moonshot's event ID
     builderPubkey: string;
+    moonshotCreatorPubkey?: string;
     message: string;
     github?: string;
     proofOfWorkLinks: ProofOfWorkLink[]; // Up to 10 links
@@ -32,12 +33,12 @@ export interface WindowNostr {
     getPublicKey(): Promise<string>;
     signEvent(event: any): Promise<any>;
     nip04?: {
-        encrypt(recipientPubkey: string, message: string): Promise<string>;
-        decrypt(senderPubkey: string, encryptedContent: string): Promise<string>;
+        encrypt(pubkey: string, plaintext: string): Promise<string>;
+        decrypt(pubkey: string, ciphertext: string): Promise<string>;
     };
     nip44?: {
-        encrypt(plaintext: string, senderPrivateKey: Uint8Array, recipientPublicKey: string): Promise<string>;
-        decrypt(ciphertext: string, recipientPrivateKey: Uint8Array, senderPublicKey: string): Promise<string>;
+        encrypt(pubkey: string, plaintext: string): Promise<string>;
+        decrypt(pubkey: string, ciphertext: string): Promise<string>;
     };
 }
 
@@ -84,8 +85,8 @@ export interface NostrResponse {
 }
 
 export interface UserProfile {
-  pubkey: string;
-  name?: string;
-  picture?: string;
-  about?: string;
+    pubkey: string;
+    name?: string;
+    picture?: string;
+    about?: string;
 }
