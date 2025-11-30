@@ -11,20 +11,21 @@ export interface Moonshot {
     createdAt: number;
 }
 
-export interface Interest {
-    id: string;
-    moonshotId: string;
-    builderPubkey: string;
-    message?: string;
-    github?: string;
-    createdAt: number;
+export interface ProofOfWorkLink {
+    url: string;
+    description: string;
 }
 
-export interface Builder {
-    npub: string;
-    message?: string;
+export interface Interest {
+    id: string; // d-tag UUID
+    eventId: string; // Actual nostr event ID
+    moonshotId: string; // The moonshot's d-tag
+    moonshotEventId: string; // The moonshot's event ID
+    builderPubkey: string;
+    message: string;
     github?: string;
-    timestamp: number;
+    proofOfWorkLinks: ProofOfWorkLink[]; // Up to 10 links
+    createdAt: number;
 }
 
 export interface WindowNostr {

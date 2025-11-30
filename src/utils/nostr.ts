@@ -1,5 +1,5 @@
 import { SimplePool, finalizeEvent, type Event } from "nostr-tools";
-import type { Moonshot, Interest } from "../types/types";
+import type { Moonshot, Interest, ProofOfWorkLink } from "../types/types";
 import { DEFAULT_RELAYS } from "./relayConfig";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -193,122 +193,140 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
     });
 }
 
-// // Publish interest event (kind 1 - short note)
-// export async function publishInterest(
-//     moonshotEventId: string,
-//     creatorPubkey: string,
-//     message: string,
-//     github?: string,
-//     portfolio?: string,
-//     additionalLinks?: { url: string; description: string }[]
-// ): Promise<void> {
-//     if (!window.nostr) {
-//         throw new Error("Nostr extension not found");
-//     }
+// Publish interest event (kind 30078)
+export async function publishInterest(
+    moonshotId: string, // d-tag of moonshot
+    moonshotEventId: string, // event ID of moonshot
+    creatorPubkey: string,
+    message: string,
+    github?: string,
+    proofOfWorkLinks?: ProofOfWorkLink[]
+): Promise<string> {
+    if (!window.nostr) {
+        throw new Error("Nostr extension not found");
+    }
 
-//     const tags = [
-//         ["e", moonshotEventId, "", "root"],
-//         ["p", creatorPubkey],
-//         ["t", "moonshot-interest"],
-//     ];
+    const interestId = uuidv4();
 
-//     if (github) {
-//         tags.push(["github", github]);
-//     }
+    const tags = [
+        ["d", interestId],
+        ["t", "moonshot-interest"],
+        ["moonshot", moonshotId], // Reference to moonshot d-tag
+        ["e", moonshotEventId], // Reference to moonshot event ID
+        ["p", creatorPubkey],
+    ];
 
-//     if (portfolio) {
-//         tags.push(["portfolio", portfolio]);
-//     }
+    if (github) {
+        tags.push(["github", github]);
+    }
 
-//     if (additionalLinks) {
-//         additionalLinks.forEach(link => {
-//             tags.push(["link", link.url, link.description]);
-//         });
-//     }
+    // Add proof of work links (max 10)
+    if (proofOfWorkLinks && proofOfWorkLinks.length > 0) {
+        proofOfWorkLinks.slice(0, 10).forEach(link => {
+            tags.push(["proof", link.url, link.description || ""]);
+        });
+    }
 
-//     const event = {
-//         kind: 1,
-//         created_at: Math.floor(Date.now() / 1000),
-//         tags,
-//         content: message,
-//     };
+    const event = {
+        kind: 30078,
+        created_at: Math.floor(Date.now() / 1000),
+        tags,
+        content: message,
+    };
 
-//     console.log("Publishing interest:", event);
+    console.log("Publishing interest:", event);
 
-//     const signedEvent = await window.nostr.signEvent(event);
-//     const pool = getPool();
-//     const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
+    const signedEvent = await window.nostr.signEvent(event);
+    const pool = getPool();
+    const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
 
-//     await Promise.race([
-//         Promise.all(pubs),
-//         new Promise(resolve => setTimeout(resolve, 5000))
-//     ]);
+    await Promise.race([
+        Promise.all(pubs),
+        new Promise(resolve => setTimeout(resolve, 5000))
+    ]);
 
-//     console.log("Interest published successfully");
-// }
+    console.log("Interest published successfully with ID:", interestId);
+    return interestId;
+}
 
-// // Fetch interests for a moonshot (kind 1 replies)
-// export async function fetchInterests(
-//     moonshotEventId: string,
-//     relays: string[] = DEFAULT_RELAYS
-// ): Promise<Interest[]> {
-//     const pool = getPool();
+// Fetch interests for a moonshot (kind 30078)
+export async function fetchInterests(moonshotEventId: string): Promise<Interest[]> {
+    const pool = getPool();
 
-//     return new Promise(resolve => {
-//         const interests: Interest[] = [];
-//         const seen = new Set<string>();
-//         let sub: any;
+    return new Promise(resolve => {
+        const interests: Interest[] = [];
+        const seen = new Set<string>();
+        let sub: any;
 
-//         const timeout = setTimeout(() => {
-//             if (sub) sub.close();
-//             console.log("Fetched interests:", interests.length);
-//             resolve(interests);
-//         }, 5000);
+        const timeout = setTimeout(() => {
+            if (sub) sub.close();
+            console.log("Fetched interests for moonshot:", moonshotEventId, "Count:", interests.length);
+            resolve(interests);
+        }, 5000);
 
-//         const filter = {
-//             kinds: [1],
-//             "#e": [moonshotEventId],
-//             "#t": ["moonshot-interest"],
-//             limit: 100,
-//         };
+        // const filter = {
+        //     kinds: [30078],
+        //     "#t": ["moonshot-interest"],
+        //     limit: 100,
+        // };
 
-//         sub = pool.subscribeMany(relays, filter, {
-//             onevent(event: Event) {
-//                 if (seen.has(event.id)) return;
-//                 seen.add(event.id);
+        const filter = {
+            kinds: [30078],
+            "#e": [moonshotEventId], // If you have the event ID
+            limit: 100,
+        };
 
-//                 try {
-//                     const githubTag = event.tags.find(t => t[0] === "github");
-//                     const portfolioTag = event.tags.find(t => t[0] === "portfolio");
-//                     const linkTags = event.tags.filter(t => t[0] === "link");
+        console.log("Fetching interests with filter:", filter);
 
-//                     const interest: Interest = {
-//                         id: event.id,
-//                         moonshotId: moonshotEventId,
-//                         builderPubkey: event.pubkey,
-//                         message: event.content,
-//                         github: githubTag?.[1],
-//                         portfolio: portfolioTag?.[1],
-//                         additionalLinks: linkTags.map(tag => ({
-//                             url: tag[1],
-//                             description: tag[2] || ""
-//                         })),
-//                         createdAt: event.created_at * 1000,
-//                     };
+        sub = pool.subscribeMany(DEFAULT_RELAYS, filter, { // FIXED: wrap filter in array
+            onevent(event: Event) {
+                if (seen.has(event.id)) return;
+                seen.add(event.id);
 
-//                     interests.push(interest);
-//                 } catch (err) {
-//                     console.error("Failed to parse interest:", err);
-//                 }
-//             },
-//             oneose() {
-//                 clearTimeout(timeout);
-//                 if (sub) sub.close();
-//                 resolve(interests);
-//             },
-//         });
-//     });
-// }
+                console.log("Interest event received:", event);
+
+                try {
+                    const dTag = event.tags.find(t => t[0] === "d");
+                    const moonshotTag = event.tags.find(t => t[0] === "moonshot");
+                    const moonshotEventTag = event.tags.find(t => t[0] === "e");
+                    const githubTag = event.tags.find(t => t[0] === "github");
+                    const proofTags = event.tags.filter(t => t[0] === "proof");
+
+                    if (!dTag || !moonshotTag) {
+                        console.warn("Interest event missing required tags:", event);
+                        return;
+                    }
+
+                    const interest: Interest = {
+                        id: dTag[1],
+                        eventId: event.id,
+                        moonshotId: moonshotTag[1],
+                        moonshotEventId: moonshotEventTag?.[1] || "",
+                        builderPubkey: event.pubkey,
+                        message: event.content,
+                        github: githubTag?.[1],
+                        proofOfWorkLinks: proofTags.map(tag => ({
+                            url: tag[1],
+                            description: tag[2] || ""
+                        })),
+                        createdAt: event.created_at * 1000,
+                    };
+
+                    console.log("Interest parsed:", interest);
+                    interests.push(interest);
+                } catch (err) {
+                    console.error("Failed to parse interest:", err);
+                }
+            },
+            oneose() {
+                clearTimeout(timeout);
+                if (sub) sub.close();
+                console.log("Interest subscription closed. Total:", interests.length);
+                resolve(interests);
+            },
+        });
+    });
+}
 
 // Check if current user has upvoted
 export async function checkUserUpvote(
@@ -374,7 +392,7 @@ export async function toggleUpvote(
     const signedEvent = await window.nostr.signEvent(event);
     const pool = getPool();
     const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
-    
+
     await Promise.race([
         Promise.all(pubs),
         new Promise(resolve => setTimeout(resolve, 5000))

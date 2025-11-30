@@ -3,9 +3,9 @@ import { useParams } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import UpvoteButton from "../components/UpvoteButton";
 import InterestDialog from "../components/InterestDialog";
-import type { Moonshot } from "../types/types";
+import type { Moonshot, ProofOfWorkLink } from "../types/types";
 import RichTextViewer from "../components/RichTextViewer";
-import { fetchMoonshotById } from "../utils/nostr";
+import { fetchMoonshotById, publishInterest } from "../utils/nostr";
 
 function Query() {
   const { id } = useParams<{ id: string }>();
@@ -42,11 +42,29 @@ function Query() {
     setShowInterestDialog(true);
   };
 
-  const handleInterestSubmit = async (message: string, github?: string) => {
-    // TODO: Publish interest event
-    console.log("Interest submitted:", { message, github });
-    setShowInterestDialog(false);
-    alert("Interest submitted successfully!");
+  const handleInterestSubmit = async (
+    message: string,
+    github?: string,
+    proofOfWorkLinks?: ProofOfWorkLink[]
+  ) => {
+    if (!moonshot) return;
+
+    try {
+      await publishInterest(
+        moonshot.id,
+        moonshot.eventId, // event ID
+        moonshot.creatorPubkey,
+        message,
+        github,
+        proofOfWorkLinks
+      );
+
+      setShowInterestDialog(false);
+      alert("Interest submitted successfully!");
+    } catch (error) {
+      console.error("Failed to submit interest:", error);
+      alert("Failed to submit interest. Please try again.");
+    }
   };
 
   if (loading) {
@@ -133,8 +151,11 @@ function Query() {
         </div>
       </div>
 
-      {showInterestDialog && isAuthenticated && (
+      {showInterestDialog && isAuthenticated && moonshot && (
         <InterestDialog
+          moonshotId={moonshot.id}
+          moonshotEventId={moonshot.eventId}
+          creatorPubkey={moonshot.creatorPubkey}
           onSubmit={handleInterestSubmit}
           onClose={() => setShowInterestDialog(false)}
         />

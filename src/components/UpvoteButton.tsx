@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { BiUpvote } from 'react-icons/bi';
 import { useAuth } from '../context/AuthContext';
 import { checkUserUpvote, toggleUpvote, fetchUpvoteCount } from '../utils/nostr';
 import { FiHeart } from 'react-icons/fi';
