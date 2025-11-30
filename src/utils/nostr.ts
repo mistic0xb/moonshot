@@ -264,21 +264,15 @@ export async function fetchInterests(moonshotEventId: string): Promise<Interest[
             resolve(interests);
         }, 5000);
 
-        // const filter = {
-        //     kinds: [30078],
-        //     "#t": ["moonshot-interest"],
-        //     limit: 100,
-        // };
-
         const filter = {
             kinds: [30078],
-            "#e": [moonshotEventId], // If you have the event ID
+            "#e": [moonshotEventId],
             limit: 100,
         };
 
         console.log("Fetching interests with filter:", filter);
 
-        sub = pool.subscribeMany(DEFAULT_RELAYS, filter, { // FIXED: wrap filter in array
+        sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
             onevent(event: Event) {
                 if (seen.has(event.id)) return;
                 seen.add(event.id);
@@ -327,7 +321,6 @@ export async function fetchInterests(moonshotEventId: string): Promise<Interest[
         });
     });
 }
-
 // Check if current user has upvoted
 export async function checkUserUpvote(
     moonshotEventId: string,
@@ -446,50 +439,98 @@ export async function fetchUpvoteCount(
 
 // Fetch user profile (kind 0)
 export async function fetchUserProfile(pubkey: string): Promise<{
-  pubkey: string;
-  name?: string;
-  picture?: string;
-  about?: string;
+    pubkey: string;
+    name?: string;
+    picture?: string;
+    about?: string;
 } | null> {
-  const pool = getPool();
+    const pool = getPool();
 
-  return new Promise(resolve => {
-    let sub: any;
+    return new Promise(resolve => {
+        let sub: any;
 
-    const timeout = setTimeout(() => {
-      if (sub) sub.close();
-      resolve(null);
-    }, 3000);
+        const timeout = setTimeout(() => {
+            if (sub) sub.close();
+            resolve(null);
+        }, 3000);
 
-    const filter = {
-      kinds: [0],
-      authors: [pubkey],
-      limit: 1,
+        const filter = {
+            kinds: [0],
+            authors: [pubkey],
+            limit: 1,
+        };
+
+        sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
+            onevent(event: Event) {
+                clearTimeout(timeout);
+                if (sub) sub.close();
+
+                try {
+                    const profileData = JSON.parse(event.content);
+                    resolve({
+                        pubkey,
+                        name: profileData.name,
+                        picture: profileData.picture,
+                        about: profileData.about,
+                    });
+                } catch (err) {
+                    console.error("Failed to parse user profile:", err);
+                    resolve({ pubkey });
+                }
+            },
+            oneose() {
+                clearTimeout(timeout);
+                if (sub) sub.close();
+                resolve(null);
+            },
+        });
+    });
+}
+
+// Update moonshot event (replaceable event - same d-tag)
+export async function updateMoonshot(
+    moonshotId: string,
+    title: string,
+    content: string,
+    budget: string,
+    timeline: string,
+    topics: string[],
+    status: string,
+): Promise<string> {
+    if (!window.nostr) {
+        throw new Error("Nostr extension not found");
+    }
+
+    const pool = getPool();
+
+    // Build tags array (same d-tag for replaceable event)
+    const eventTags = [
+        ["d", moonshotId], // Same d-tag to replace the event
+        ["t", "moonshot"],
+        ["title", title],
+        ["topics", ...topics],
+        ["budget", budget],
+        ["timeline", timeline],
+        ["status", status],
+    ];
+
+    const event = {
+        kind: 30078,
+        created_at: Math.floor(Date.now() / 1000), // New timestamp
+        tags: eventTags,
+        content: content,
     };
 
-    sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
-      onevent(event: Event) {
-        clearTimeout(timeout);
-        if (sub) sub.close();
+    console.log("Updating moonshot event:", event);
 
-        try {
-          const profileData = JSON.parse(event.content);
-          resolve({
-            pubkey,
-            name: profileData.name,
-            picture: profileData.picture,
-            about: profileData.about,
-          });
-        } catch (err) {
-          console.error("Failed to parse user profile:", err);
-          resolve({ pubkey });
-        }
-      },
-      oneose() {
-        clearTimeout(timeout);
-        if (sub) sub.close();
-        resolve(null);
-      },
-    });
-  });
+    const signedEvent = await window.nostr.signEvent(event);
+    const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
+
+    await Promise.race([
+        Promise.all(pubs),
+        new Promise(resolve => setTimeout(resolve, 5000))
+    ]);
+
+    console.log("Moonshot updated with ID:", moonshotId);
+    return moonshotId;
 }

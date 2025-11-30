@@ -46,7 +46,7 @@ function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfo
                   rel="noopener noreferrer"
                   className="flex items-start gap-2 text-sky-400 hover:text-sky-300 text-sm transition-colors group"
                 >
-                  <BsLink45Deg className="text-lg flex-shrink-0 mt-0.5" />
+                  <BsLink45Deg className="text-lg shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="truncate group-hover:underline">{link.url}</p>
                     {link.description && (
@@ -60,7 +60,7 @@ function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfo
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 flex-shrink-0 ml-4">
+        <div className="flex gap-2 shrink-0 ml-4">
           {!isAccepted ? (
             <>
               <button
