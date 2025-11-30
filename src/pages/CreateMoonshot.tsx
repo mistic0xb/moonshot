@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import RichTextEditor from "../components/RichTextEditor";
 import { fetchAllMoonshots , publishMoonshot } from "../utils/nostr";
 
-function CreateIdea() {
+function CreateMoonshot() {
   const navigate = useNavigate();
   const { isAuthenticated, checkAuth } = useAuth();
   const [content, setContent] = useState("");
@@ -14,15 +14,46 @@ function CreateIdea() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showCustomBudget, setShowCustomBudget] = useState(false);
   const [showCustomTimeline, setShowCustomTimeline] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Check auth on mount and after auth changes
   useEffect(() => {
     checkAuth();
   }, []);
 
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!title.trim()) {
+      newErrors.title = "Project title is required";
+    }
+
+    if (!content.trim()) {
+      newErrors.content = "Project description is required";
+    }
+
+    if (!budget.trim()) {
+      newErrors.budget = "Budget is required";
+    } else if (parseInt(budget) < 1000) {
+      newErrors.budget = "Minimum budget is 1,000 sats";
+    }
+
+    if (!timeline.trim()) {
+      newErrors.timeline = "Timeline is required";
+    } else if (parseInt(timeline) < 1) {
+      newErrors.timeline = "Minimum timeline is 1 month";
+    }
+
+    if (selectedTags.length < 2) {
+      newErrors.tags = "Please select at least 2 tags";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
-    if (!title.trim() || !content.trim() || !budget.trim() || !timeline.trim()) {
-      alert("Please fill in all fields");
+    if (!validateForm()) {
       return;
     }
 
@@ -74,10 +105,16 @@ function CreateIdea() {
             <input
               type="text"
               value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="e.g., Decentralized Social Media Client"
-              className="w-full bg-blackish border border-sky-500/30 text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded"
+              onChange={e => {
+                setTitle(e.target.value);
+                if (errors.title) setErrors({...errors, title: ""});
+              }}
+              placeholder="e.g., Zapit: live board messaging powered by nostr & lightning"
+              className={`w-full bg-blackish border ${
+                errors.title ? "border-red-500" : "border-sky-500/30"
+              } text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded`}
             />
+            {errors.title && <p className="text-red-400 text-sm mt-1">{errors.title}</p>}
           </div>
 
           {/* Budget & Timeline */}
@@ -107,7 +144,10 @@ function CreateIdea() {
                     max="100000"
                     step="1000"
                     value={budget}
-                    onChange={e => setBudget(e.target.value)}
+                    onChange={e => {
+                      setBudget(e.target.value);
+                      if (errors.budget) setErrors({...errors, budget: ""});
+                    }}
                     className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
                   />
 
@@ -124,11 +164,16 @@ function CreateIdea() {
                   <input
                     type="number"
                     value={budget}
-                    onChange={e => setBudget(e.target.value)}
+                    onChange={e => {
+                      setBudget(e.target.value);
+                      if (errors.budget) setErrors({...errors, budget: ""});
+                    }}
                     min="1000"
                     max="1000000"
                     placeholder="Enter custom amount"
-                    className="flex-1 bg-blackish border border-sky-500/30 text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded"
+                    className={`flex-1 bg-blackish border ${
+                      errors.budget ? "border-red-500" : "border-sky-500/30"
+                    } text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded`}
                   />
                   <button
                     type="button"
@@ -139,6 +184,7 @@ function CreateIdea() {
                   </button>
                 </div>
               )}
+              {errors.budget && <p className="text-red-400 text-sm mt-1">{errors.budget}</p>}
             </div>
 
             {/* Timeline */}
@@ -168,7 +214,10 @@ function CreateIdea() {
                     max="12"
                     step="1"
                     value={timeline}
-                    onChange={e => setTimeline(e.target.value)}
+                    onChange={e => {
+                      setTimeline(e.target.value);
+                      if (errors.timeline) setErrors({...errors, timeline: ""});
+                    }}
                     className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
                   />
 
@@ -185,11 +234,16 @@ function CreateIdea() {
                   <input
                     type="number"
                     value={timeline}
-                    onChange={e => setTimeline(e.target.value)}
+                    onChange={e => {
+                      setTimeline(e.target.value);
+                      if (errors.timeline) setErrors({...errors, timeline: ""});
+                    }}
                     min="1"
                     max="36"
                     placeholder="Months"
-                    className="flex-1 bg-blackish border border-sky-500/30 text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded"
+                    className={`flex-1 bg-blackish border ${
+                      errors.timeline ? "border-red-500" : "border-sky-500/30"
+                    } text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded`}
                   />
                   <button
                     type="button"
@@ -200,12 +254,14 @@ function CreateIdea() {
                   </button>
                 </div>
               )}
+              {errors.timeline && <p className="text-red-400 text-sm mt-1">{errors.timeline}</p>}
             </div>
           </div>
+
           {/* Topic Tags */}
           <div>
             <label className="block text-sky-300 font-semibold mb-2 text-sm uppercase tracking-wide">
-              Tags
+              Tags *
             </label>
             <div className="flex flex-wrap gap-2">
               {[
@@ -231,17 +287,19 @@ function CreateIdea() {
                       : "bg-blackish border-sky-500/30 text-sky-300 hover:bg-sky-500/20"
                   }`}
                   onClick={() => {
-                    if (selectedTags.includes(tag)) {
-                      setSelectedTags(selectedTags.filter(t => t !== tag));
-                    } else {
-                      setSelectedTags([...selectedTags, tag]);
-                    }
+                    const newTags = selectedTags.includes(tag)
+                      ? selectedTags.filter(t => t !== tag)
+                      : [...selectedTags, tag];
+                    setSelectedTags(newTags);
+                    if (errors.tags && newTags.length >= 2) setErrors({...errors, tags: ""});
                   }}
                 >
                   #{tag}
                 </button>
               ))}
             </div>
+            {errors.tags && <p className="text-red-400 text-sm mt-1">{errors.tags}</p>}
+            <p className="text-gray-400 text-sm mt-2">Select at least 2 tags to categorize your project</p>
           </div>
 
           {/* Rich Text Editor */}
@@ -249,8 +307,8 @@ function CreateIdea() {
             <label className="block text-sky-300 font-semibold mb-2 text-sm uppercase tracking-wide">
               Project Description *
             </label>
-
             <RichTextEditor content={content} onChange={setContent} />
+            {errors.content && <p className="text-red-400 text-sm mt-1">{errors.content}</p>}
           </div>
 
           {/* Info Box */}
@@ -274,4 +332,4 @@ function CreateIdea() {
   );
 }
 
-export default CreateIdea;
+export default CreateMoonshot;
