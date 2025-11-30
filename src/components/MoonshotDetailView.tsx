@@ -16,7 +16,6 @@ function MoonshotDetailView({ moonshot, onBack, onMoonshotUpdate }: MoonshotDeta
   const [interests, setInterests] = useState<Interest[]>([]);
   const [upvoteCount, setUpvoteCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [selectedBuilder, setSelectedBuilder] = useState<string | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [currentMoonshot, setCurrentMoonshot] = useState<Moonshot>(moonshot);
 
@@ -41,20 +40,6 @@ function MoonshotDetailView({ moonshot, onBack, onMoonshotUpdate }: MoonshotDeta
 
     loadData();
   }, [currentMoonshot.id, currentMoonshot.eventId]);
-
-  const handleChatWithBuilder = (builderPubkey: string) => {
-    // TODO: Implement NIP-17 chat
-    console.log("Opening chat with builder:", builderPubkey);
-    alert("Chat feature coming soon! (NIP-17)");
-  };
-
-  const handleAcceptBuilder = (interestId: string, builderPubkey: string) => {
-    // TODO: Update moonshot status to "assigned"
-    // TODO: Send NIP-17 DM to selected builder
-    console.log("Accepting builder:", builderPubkey);
-    setSelectedBuilder(interestId);
-    alert("Accept & Angor export coming soon!");
-  };
 
   const handleEditMoonshot = async (updatedData: {
     title: string;
@@ -207,19 +192,8 @@ function MoonshotDetailView({ moonshot, onBack, onMoonshotUpdate }: MoonshotDeta
                 <BuilderInfoCard
                   key={interest.id}
                   interest={interest}
-                  onChat={() => handleChatWithBuilder(interest.builderPubkey)}
-                  onAccept={() => handleAcceptBuilder(interest.id, interest.builderPubkey)}
-                  isAccepted={selectedBuilder === interest.id}
                 />
               ))}
-            </div>
-          )}
-
-          {selectedBuilder && (
-            <div className="card-style p-6 mt-6 border-green-500/30 bg-green-900/10 rounded">
-              <p className="text-green-400 font-semibold">
-                ✓ Builder accepted! Next: Export to Angor for funding.
-              </p>
             </div>
           )}
         </div>

@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react";
-import { BsGithub, BsLink45Deg, BsChat, BsCheck2Circle, BsChevronDown, BsChevronUp } from "react-icons/bs";
+import { BsGithub, BsLink45Deg, BsChat, BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { nip19 } from "nostr-tools";
 import type { Interest, UserProfile } from "../types/types";
 import { fetchUserProfile } from "../utils/nostr";
+import BuilderChatBox from "./BuilderChatBox";
 
 interface BuilderInfoCardProps {
   interest: Interest;
-  onChat: () => void;
-  onAccept: () => void;
-  isAccepted?: boolean;
 }
 
-function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfoCardProps) {
+function BuilderInfoCard({ interest }: BuilderInfoCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showChat, setShowChat] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
@@ -35,9 +34,9 @@ function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfo
   const displayName = userProfile?.name || `${builderNpub.slice(0, 8)}...${builderNpub.slice(-4)}`;
 
   return (
-    <div 
+    <div
       className={`card-style p-6 cursor-pointer transition-all duration-300 ${
-        isExpanded ? 'border-sky-400/50 bg-sky-900/10' : 'hover:border-sky-300/40'
+        isExpanded ? "border-sky-400/50 bg-sky-900/10" : "hover:border-sky-300/40"
       }`}
       onClick={() => setIsExpanded(!isExpanded)}
     >
@@ -64,9 +63,7 @@ function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfo
           {/* Builder Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-white font-semibold text-lg truncate">
-                {displayName}
-              </h3>
+              <h3 className="text-white font-semibold text-lg truncate">{displayName}</h3>
               {userProfile?.name && (
                 <span className="text-gray-500 text-xs font-mono bg-gray-800 px-2 py-1 rounded">
                   {builderNpub.slice(0, 8)}...{builderNpub.slice(-4)}
@@ -77,14 +74,18 @@ function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfo
             {/* GitHub Link */}
             {interest.github && (
               <a
-                href={interest.github.startsWith('http') ? interest.github : `https://github.com/${interest.github}`}
+                href={
+                  interest.github.startsWith("http")
+                    ? interest.github
+                    : `https://github.com/${interest.github}`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
                 className="flex items-center gap-2 text-gray-400 hover:text-sky-400 text-sm transition-colors"
               >
                 <BsGithub />
-                <span>{interest.github.replace(/^(https?:\/\/)?(www\.)?github\.com\//, '')}</span>
+                <span>{interest.github.replace(/^(https?:\/\/)?(www\.)?github\.com\//, "")}</span>
               </a>
             )}
 
@@ -99,38 +100,20 @@ function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfo
 
         {/* Action Buttons & Expand Toggle */}
         <div className="flex items-center gap-2 shrink-0 ml-4">
-          {!isAccepted ? (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChat();
-                }}
-                className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded font-semibold uppercase text-xs transition-colors flex items-center gap-1"
-              >
-                <BsChat />
-                Chat
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAccept();
-                }}
-                className="bg-sky-600 hover:bg-sky-500 text-white px-3 py-2 rounded font-semibold uppercase text-xs transition-colors flex items-center gap-1"
-              >
-                <BsCheck2Circle />
-                Accept
-              </button>
-            </>
-          ) : (
-            <div className="bg-green-600/20 border border-green-500/30 text-green-400 px-4 py-2 rounded font-semibold uppercase text-xs flex items-center gap-1">
-              <BsCheck2Circle />
-              Accepted
-            </div>
-          )}
-          
           <button
-            onClick={(e) => {
+            onClick={e => {
+              e.stopPropagation();
+              setShowChat(true);
+            }}
+            className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded font-semibold uppercase text-sm transition-colors flex items-center gap-2"
+          >
+            <BsChat />
+            Chat
+          </button>
+          {showChat && <BuilderChatBox interest={interest} onClose={() => setShowChat(false)} />}
+
+          <button
+            onClick={e => {
               e.stopPropagation();
               setIsExpanded(!isExpanded);
             }}
@@ -144,9 +127,7 @@ function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfo
       {/* Message Preview */}
       {!isExpanded && (
         <div className="mt-4">
-          <p className="text-gray-400 text-sm line-clamp-2">
-            {interest.message}
-          </p>
+          <p className="text-gray-400 text-sm line-clamp-2">{interest.message}</p>
         </div>
       )}
 
@@ -156,7 +137,9 @@ function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfo
           {/* About Section (if available) */}
           {userProfile?.about && (
             <div>
-              <h4 className="text-sky-300 font-semibold text-sm mb-2 uppercase tracking-wide">About</h4>
+              <h4 className="text-sky-300 font-semibold text-sm mb-2 uppercase tracking-wide">
+                About
+              </h4>
               <p className="text-gray-300 text-sm leading-relaxed bg-blackish p-4 rounded border border-sky-500/20">
                 {userProfile.about}
               </p>
@@ -165,7 +148,9 @@ function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfo
 
           {/* Message */}
           <div>
-            <h4 className="text-sky-300 font-semibold text-sm mb-2 uppercase tracking-wide">Their Pitch</h4>
+            <h4 className="text-sky-300 font-semibold text-sm mb-2 uppercase tracking-wide">
+              Their Pitch
+            </h4>
             <div className="bg-blackish border border-sky-500/20 rounded p-4">
               <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
                 {interest.message}
@@ -189,7 +174,7 @@ function BuilderInfoCard({ interest, onChat, onAccept, isAccepted }: BuilderInfo
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={e => e.stopPropagation()}
                       className="flex items-start gap-3 text-sky-400 hover:text-sky-300 transition-colors group"
                     >
                       <BsLink45Deg className="text-xl shrink-0 mt-0.5" />
