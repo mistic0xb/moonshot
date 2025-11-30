@@ -227,7 +227,7 @@ export function InterestDialog({
                     <button
                       onClick={() => handleRemoveLink(index)}
                       disabled={submitting}
-                      className="text-red-400 hover:text-red-300 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100 disabled:opacity-30"
+                      className="text-red-400 hover:text-red-300 transition-colors shrink-0 opacity-0 group-hover:opacity-100 disabled:opacity-30"
                     >
                       <BsX className="text-2xl" />
                     </button>

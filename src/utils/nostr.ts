@@ -250,7 +250,7 @@ export async function publishInterest(
 }
 
 // Fetch interests for a moonshot (kind 30078)
-export async function fetchInterests(moonshotEventId: string): Promise<Interest[]> {
+export async function fetchInterests(moonshotId: string): Promise<Interest[]> {
     const pool = getPool();
 
     return new Promise(resolve => {
@@ -260,13 +260,13 @@ export async function fetchInterests(moonshotEventId: string): Promise<Interest[
 
         const timeout = setTimeout(() => {
             if (sub) sub.close();
-            console.log("Fetched interests for moonshot:", moonshotEventId, "Count:", interests.length);
+            console.log("Fetched interests for moonshot:", moonshotId, "Count:", interests.length);
             resolve(interests);
         }, 5000);
 
         const filter = {
             kinds: [30078],
-            "#e": [moonshotEventId],
+            "#t": ["moonshot-interest"],
             limit: 100,
         };
 
@@ -288,6 +288,11 @@ export async function fetchInterests(moonshotEventId: string): Promise<Interest[
 
                     if (!dTag || !moonshotTag) {
                         console.warn("Interest event missing required tags:", event);
+                        return;
+                    }
+
+                    if (moonshotTag[1] !== moonshotId) {
+                            console.log(`Skipping interest - expected ${moonshotId}, got ${moonshotTag[1]}`);
                         return;
                     }
 

@@ -25,7 +25,7 @@ function MoonshotDetailView({ moonshot, onBack, onMoonshotUpdate }: MoonshotDeta
       try {
         // Fetch interests and upvotes
         const [fetchedInterests, upvotes] = await Promise.all([
-          fetchInterests(currentMoonshot.eventId),
+          fetchInterests(currentMoonshot.id),
           fetchUpvoteCount(currentMoonshot.eventId),
         ]);
         console.log("Interests:", fetchedInterests);

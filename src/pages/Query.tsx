@@ -30,7 +30,7 @@ function Query() {
         
         if (fetchedMoonshot) {
           // Load interests for this moonshot
-          const fetchedInterests = await fetchInterests(fetchedMoonshot.eventId);
+          const fetchedInterests = await fetchInterests(fetchedMoonshot.id);
           setInterests(fetchedInterests);
           
           // Fetch profiles for all interested builders
@@ -87,7 +87,7 @@ function Query() {
       alert("Interest submitted successfully!");
       
       // Refresh interests after submission
-      const updatedInterests = await fetchInterests(moonshot.eventId);
+      const updatedInterests = await fetchInterests(moonshot.id);
       setInterests(updatedInterests);
       
       // Fetch profiles for new interests
