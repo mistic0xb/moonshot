@@ -90,3 +90,14 @@ export interface UserProfile {
     picture?: string;
     about?: string;
 }
+
+export interface ChatMessage {
+    id: string;
+    senderPubkey: string;
+    receiverPubkey: string;
+    content: string;
+    timestamp: number;
+    encrypted: boolean;
+    moonshotId?: string;
+    interestId?: string;
+}
