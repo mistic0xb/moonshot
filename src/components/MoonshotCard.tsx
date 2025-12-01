@@ -38,6 +38,17 @@ function MoonshotCard({ moonshot, onClick }: MoonshotCardProps) {
     loadCardData();
   }, [moonshot.eventId, moonshot.creatorPubkey]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-blackish flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-sky-600/20 border-t-sky-200 animate-spin"></div>
+          <p className="text-sky-300 text-lg">Loading moonshots...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={onClick}
