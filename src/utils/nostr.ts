@@ -326,6 +326,73 @@ export async function fetchInterests(moonshotId: string): Promise<Interest[]> {
         });
     });
 }
+
+// function to fetch all interests by a user
+export async function fetchUserInterests(userPubkey: string): Promise<Interest[]> {
+  const pool = getPool();
+
+  return new Promise(resolve => {
+    const interests: Interest[] = [];
+    const seen = new Set<string>();
+    let sub: any;
+
+    const timeout = setTimeout(() => {
+      if (sub) sub.close();
+      resolve(interests);
+    }, 5000);
+
+    const filter = {
+      kinds: [30078],
+      "#t": ["moonshot-interest"],
+      authors: [userPubkey],
+      limit: 100,
+    };
+
+    sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
+      onevent(event: any) {
+        if (seen.has(event.id)) return;
+        seen.add(event.id);
+
+        try {
+          const dTag = event.tags.find((t: string[]) => t[0] === "d");
+          const moonshotTag = event.tags.find((t: string[]) => t[0] === "moonshot");
+          const moonshotEventTag = event.tags.find((t: string[]) => t[0] === "e");
+          const githubTag = event.tags.find((t: string[]) => t[0] === "github");
+          const proofTags = event.tags.filter((t: string[]) => t[0] === "proof");
+          const creatorPubkeyTag = event.tags.find((t: string[]) => t[0] === "p");
+
+          if (!dTag || !moonshotTag) return;
+
+          const interest: Interest = {
+            id: dTag[1],
+            eventId: event.id,
+            moonshotId: moonshotTag[1],
+            moonshotEventId: moonshotEventTag?.[1] || "",
+            moonshotCreatorPubkey: creatorPubkeyTag?.[1],
+            builderPubkey: event.pubkey,
+            message: event.content,
+            github: githubTag?.[1],
+            proofOfWorkLinks: proofTags.map((tag: string[]) => ({
+              url: tag[1],
+              description: tag[2] || "",
+            })),
+            createdAt: event.created_at * 1000,
+          };
+
+          interests.push(interest);
+        } catch (err) {
+          console.error("Failed to parse interest:", err);
+        }
+      },
+      oneose() {
+        clearTimeout(timeout);
+        if (sub) sub.close();
+        resolve(interests);
+      },
+    });
+  });
+}
+
 // Check if current user has upvoted
 export async function checkUserUpvote(
     moonshotEventId: string,
