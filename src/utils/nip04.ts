@@ -1,16 +1,6 @@
+import type { ChatMessage } from "../types/types";
 import { getPool } from "./nostr";
 import { DEFAULT_RELAYS } from "./relayConfig";
-
-export interface ChatMessage {
-    id: string;
-    senderPubkey: string;
-    receiverPubkey: string;
-    content: string;
-    timestamp: number;
-    encrypted: boolean;
-    moonshotId?: string;
-    interestId?: string;
-}
 
 const DB_NAME = "nostr_nip04_messages";
 const DB_VERSION = 1;

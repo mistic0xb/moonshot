@@ -2,13 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { BsX, BsSend, BsArrowLeft } from "react-icons/bs";
 import { useAuth } from "../context/AuthContext";
 import { nip19 } from "nostr-tools";
-import type { Interest } from "../types/types";
-import {
-  sendNip04Message,
-  fetchNip04Messages,
-  subscribeToNip04Messages,
-  type ChatMessage,
-} from "../utils/nip04";
+import type { Interest, ChatMessage } from "../types/types";
+import { sendNip04Message, fetchNip04Messages, subscribeToNip04Messages } from "../utils/nip04";
 
 interface BuilderChatBoxProps {
   interest: Interest;
