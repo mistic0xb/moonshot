@@ -1,26 +1,30 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import MoonshotCard from '../components/MoonshotCard';
-import type { Moonshot } from '../types/types';
-import { fetchAllMoonshots } from '../utils/nostr';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
+import MoonshotCard from "../components/MoonshotCard";
+import type { Moonshot } from "../types/types";
+import { fetchAllMoonshots } from "../utils/nostr";
 
 function Explore() {
   const navigate = useNavigate();
   const [moonshots, setMoonshots] = useState<Moonshot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     // Fetch moonshots from Nostr relays
     const fetchData = async () => {
-      const allMoonshots = await fetchAllMoonshots();
-      setMoonshots(allMoonshots);
+      try {
+        const allMoonshots = await fetchAllMoonshots();
+        setMoonshots(allMoonshots);
+      } catch (err) {
+        console.log(`ERROR: fetching all moonshots ${err}`);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetchData();
 
-    // For now, using mock data
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    fetchData();
   }, []);
 
   if (loading) {
@@ -29,6 +33,17 @@ function Explore() {
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-sky-600/20 border-t-sky-200 animate-spin"></div>
           <p className="text-sky-300 text-lg">Loading moonshots...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-blackish flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-red-400/20 border-t-red-200 animate-spin"></div>
+          <p className="text-red-500 text-lg">Error fetching moonshots !</p>
         </div>
       </div>
     );
@@ -50,7 +65,7 @@ function Explore() {
           <div className="text-center py-20">
             <p className="text-gray-400 text-lg mb-4">No moonshots found</p>
             <button
-              onClick={() => navigate('/create')}
+              onClick={() => navigate("/create")}
               className="bg-sky-600 hover:bg-sky-500 text-white px-8 py-3 font-semibold uppercase transition-colors"
             >
               Create First Moonshot
@@ -59,8 +74,8 @@ function Explore() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {moonshots.map(moonshot => (
-              <MoonshotCard 
-                key={moonshot.id} 
+              <MoonshotCard
+                key={moonshot.id}
                 moonshot={moonshot}
                 onClick={() => navigate(`/moonshot/${moonshot.id}`)}
               />
