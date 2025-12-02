@@ -15,7 +15,7 @@ interface InterestDialogProps {
 }
 
 export function InterestDialog({ 
-  moonshotEventId, 
+  // moonshotEventId, 
   onSubmit, 
   onClose 
 }: InterestDialogProps) {
