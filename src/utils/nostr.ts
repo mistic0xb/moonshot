@@ -36,7 +36,8 @@ export async function publishMoonshot(
         ["topics", ...topics], // Store all topics in one tag
         ["budget", budget],
         ["timeline", timeline],
-        ["status", "open"]
+        ["status", "open"],
+        ["isExplorable", "true"]
     ];
 
     const event = {
@@ -93,6 +94,7 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
                     const timelineTag = event.tags.find(t => t[0] === "timeline");
                     const statusTag = event.tags.find(t => t[0] === "status");
                     const topicsTag = event.tags.find(t => t[0] === "topics");
+                    const isExplorableTag = event.tags.find(t => t[0] === "isExplorable");
 
                     if (!dTag || !titleTag) {
                         console.warn("Invalid moonshot event (missing d or title):", event);
@@ -109,6 +111,7 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
                         topics: topicsTag ? topicsTag.slice(1) : [], // Get all topics after tag name
                         status: (statusTag?.[1] as any) || "open",
                         creatorPubkey: event.pubkey,
+                        isExplorable: isExplorableTag?.[1] === "false" ? false : true,
                         createdAt: event.created_at * 1000,
                     };
 
@@ -158,6 +161,8 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
                     const timelineTag = event.tags.find(t => t[0] === "timeline");
                     const statusTag = event.tags.find(t => t[0] === "status");
                     const topicsTag = event.tags.find(t => t[0] === "topics");
+                    const isExplorableTag = event.tags.find(t => t[0] === "isExplorable");
+
 
                     if (!dTag || !titleTag) {
                         resolve(null);
@@ -174,6 +179,7 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
                         topics: topicsTag ? topicsTag.slice(1) : [],
                         status: (statusTag?.[1] as any) || "open",
                         creatorPubkey: event.pubkey,
+                        isExplorable: isExplorableTag?.[1] === "false" ? false : true,
                         createdAt: event.created_at * 1000,
                     };
 
@@ -584,6 +590,7 @@ export async function updateMoonshot(
         ["budget", budget],
         ["timeline", timeline],
         ["status", status],
+        ["isExplorable", "true"]
     ];
 
     const event = {
@@ -659,4 +666,43 @@ export async function publishNostrShare(
     ]);
 
     console.log("Moonshot shared on Nostr successfully");
+}
+
+export async function removeMoonshot(moonshot: Moonshot): Promise<void> {
+    if (!window.nostr) {
+        throw new Error("Nostr extension not found");
+    }
+
+    const pool = getPool();
+
+    // Build tags array (same d-tag for replaceable event)
+    const eventTags = [
+        ["d", moonshot.id],
+        ["t", "moonshot"],
+        ["title", moonshot.title],
+        ["topics", ...moonshot.topics],
+        ["budget", moonshot.budget],
+        ["timeline", moonshot.timeline],
+        ["status", moonshot.status],
+        ["isExplorable", "false"], // Mark as not explorable
+    ];
+
+    const event = {
+        kind: 30078,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: eventTags,
+        content: moonshot.content,
+    };
+
+    console.log("Deleting moonshot (marking as not explorable):", event);
+
+    const signedEvent = await window.nostr.signEvent(event);
+    const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
+
+    await Promise.race([
+        Promise.all(pubs),
+        new Promise(resolve => setTimeout(resolve, 5000))
+    ]);
+
+    console.log("Moonshot marked as not explorable:", moonshot.id);
 }

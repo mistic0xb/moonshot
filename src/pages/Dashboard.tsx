@@ -23,7 +23,7 @@ function Dashboard() {
       try {
         // Fetch moonshots created by user
         const allMoonshots = await fetchAllMoonshots();
-        const userMoonshots = allMoonshots.filter(m => m.creatorPubkey === userPubkey);
+        const userMoonshots = allMoonshots.filter(m => m.creatorPubkey === userPubkey && m.isExplorable); // temp fix(isExplorable), need to refactor 
         setMyMoonshots(userMoonshots);
       } catch (error) {
         console.error("Failed to fetch moonshots:", error);

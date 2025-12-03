@@ -15,9 +15,15 @@ function Explore() {
     const fetchData = async () => {
       try {
         const allMoonshots = await fetchAllMoonshots();
-        setMoonshots(allMoonshots);
+        
+        // Filter to only show explorable moonshots
+        const explorableMoonshots = allMoonshots.filter(
+          moonshot => moonshot.isExplorable !== false
+        );
+        
+        setMoonshots(explorableMoonshots);
       } catch (err) {
-        console.log(`ERROR: fetching all moonshots ${err}`);
+        console.error(`ERROR: fetching all moonshots`, err);
         setError(true);
       } finally {
         setLoading(false);
@@ -43,7 +49,7 @@ function Explore() {
       <div className="min-h-screen bg-blackish flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-red-400/20 border-t-red-200 animate-spin"></div>
-          <p className="text-red-500 text-lg">Error fetching moonshots !</p>
+          <p className="text-red-500 text-lg">Error fetching moonshots!</p>
         </div>
       </div>
     );
@@ -66,7 +72,7 @@ function Explore() {
             <p className="text-gray-400 text-lg mb-4">No moonshots found</p>
             <button
               onClick={() => navigate("/create")}
-              className="bg-sky-600 hover:bg-sky-500 text-white px-8 py-3 font-semibold uppercase transition-colors"
+              className="bg-sky-600 hover:bg-sky-500 text-white px-8 py-3 font-semibold uppercase transition-colors rounded"
             >
               Create First Moonshot
             </button>

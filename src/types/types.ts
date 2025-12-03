@@ -8,6 +8,7 @@ export interface Moonshot {
     topics: Array<string>,
     status: string,
     creatorPubkey: string;
+    isExplorable?: boolean;
     createdAt: number;
 }
 
