@@ -329,68 +329,68 @@ export async function fetchInterests(moonshotId: string): Promise<Interest[]> {
 
 // function to fetch all interests by a user
 export async function fetchUserInterests(userPubkey: string): Promise<Interest[]> {
-  const pool = getPool();
+    const pool = getPool();
 
-  return new Promise(resolve => {
-    const interests: Interest[] = [];
-    const seen = new Set<string>();
-    let sub: any;
+    return new Promise(resolve => {
+        const interests: Interest[] = [];
+        const seen = new Set<string>();
+        let sub: any;
 
-    const timeout = setTimeout(() => {
-      if (sub) sub.close();
-      resolve(interests);
-    }, 5000);
+        const timeout = setTimeout(() => {
+            if (sub) sub.close();
+            resolve(interests);
+        }, 5000);
 
-    const filter = {
-      kinds: [30078],
-      "#t": ["moonshot-interest"],
-      authors: [userPubkey],
-      limit: 100,
-    };
+        const filter = {
+            kinds: [30078],
+            "#t": ["moonshot-interest"],
+            authors: [userPubkey],
+            limit: 100,
+        };
 
-    sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
-      onevent(event: any) {
-        if (seen.has(event.id)) return;
-        seen.add(event.id);
+        sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
+            onevent(event: any) {
+                if (seen.has(event.id)) return;
+                seen.add(event.id);
 
-        try {
-          const dTag = event.tags.find((t: string[]) => t[0] === "d");
-          const moonshotTag = event.tags.find((t: string[]) => t[0] === "moonshot");
-          const moonshotEventTag = event.tags.find((t: string[]) => t[0] === "e");
-          const githubTag = event.tags.find((t: string[]) => t[0] === "github");
-          const proofTags = event.tags.filter((t: string[]) => t[0] === "proof");
-          const creatorPubkeyTag = event.tags.find((t: string[]) => t[0] === "p");
+                try {
+                    const dTag = event.tags.find((t: string[]) => t[0] === "d");
+                    const moonshotTag = event.tags.find((t: string[]) => t[0] === "moonshot");
+                    const moonshotEventTag = event.tags.find((t: string[]) => t[0] === "e");
+                    const githubTag = event.tags.find((t: string[]) => t[0] === "github");
+                    const proofTags = event.tags.filter((t: string[]) => t[0] === "proof");
+                    const creatorPubkeyTag = event.tags.find((t: string[]) => t[0] === "p");
 
-          if (!dTag || !moonshotTag) return;
+                    if (!dTag || !moonshotTag) return;
 
-          const interest: Interest = {
-            id: dTag[1],
-            eventId: event.id,
-            moonshotId: moonshotTag[1],
-            moonshotEventId: moonshotEventTag?.[1] || "",
-            moonshotCreatorPubkey: creatorPubkeyTag?.[1],
-            builderPubkey: event.pubkey,
-            message: event.content,
-            github: githubTag?.[1],
-            proofOfWorkLinks: proofTags.map((tag: string[]) => ({
-              url: tag[1],
-              description: tag[2] || "",
-            })),
-            createdAt: event.created_at * 1000,
-          };
+                    const interest: Interest = {
+                        id: dTag[1],
+                        eventId: event.id,
+                        moonshotId: moonshotTag[1],
+                        moonshotEventId: moonshotEventTag?.[1] || "",
+                        moonshotCreatorPubkey: creatorPubkeyTag?.[1],
+                        builderPubkey: event.pubkey,
+                        message: event.content,
+                        github: githubTag?.[1],
+                        proofOfWorkLinks: proofTags.map((tag: string[]) => ({
+                            url: tag[1],
+                            description: tag[2] || "",
+                        })),
+                        createdAt: event.created_at * 1000,
+                    };
 
-          interests.push(interest);
-        } catch (err) {
-          console.error("Failed to parse interest:", err);
-        }
-      },
-      oneose() {
-        clearTimeout(timeout);
-        if (sub) sub.close();
-        resolve(interests);
-      },
+                    interests.push(interest);
+                } catch (err) {
+                    console.error("Failed to parse interest:", err);
+                }
+            },
+            oneose() {
+                clearTimeout(timeout);
+                if (sub) sub.close();
+                resolve(interests);
+            },
+        });
     });
-  });
 }
 
 // Check if current user has upvoted
@@ -605,4 +605,58 @@ export async function updateMoonshot(
 
     console.log("Moonshot updated with ID:", moonshotId);
     return moonshotId;
+}
+
+// Share moonshot on Nostr (kind 1 event)
+export async function publishNostrShare(
+    moonshot: Moonshot,
+    moonshotUrl: string
+): Promise<void> {
+    if (!window.nostr) {
+        throw new Error("Nostr extension not found");
+    }
+
+    const pool = getPool();
+
+    // Build the message
+    let message = `🚀 New MoonShot: ${moonshot.title}\n\n`;
+    message += `💰 Budget: ${moonshot.budget} sats\n`;
+    message += `⏱️ Timeline: ${moonshot.timeline} months\n`;
+
+    if (moonshot.topics && moonshot.topics.length > 0) {
+        message += `\n${moonshot.topics.map(topic => `#${topic}`).join(' ')}\n`;
+    }
+
+    message += `\n${moonshotUrl}`;
+
+    // Build tags
+    const tags: string[][] = [
+        ["t", "moonshot"],
+    ];
+
+    // Add topic tags
+    if (moonshot.topics && moonshot.topics.length > 0) {
+        moonshot.topics.forEach(topic => {
+            tags.push(["t", topic.toLowerCase()]);
+        });
+    }
+
+    const event = {
+        kind: 1,
+        created_at: Math.floor(Date.now() / 1000),
+        tags,
+        content: message,
+    };
+
+    console.log("Publishing Nostr share:", event);
+
+    const signedEvent = await window.nostr.signEvent(event);
+    const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
+
+    await Promise.race([
+        Promise.all(pubs),
+        new Promise(resolve => setTimeout(resolve, 5000))
+    ]);
+
+    console.log("Moonshot shared on Nostr successfully");
 }
