@@ -15,7 +15,7 @@ import {
 
 function Query() {
   const { id } = useParams<{ id: string }>();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userPubkey } = useAuth();
   const [moonshot, setMoonshot] = useState<Moonshot | null>(null);
   const [interests, setInterests] = useState<Interest[]>([]);
   const [userProfiles, setUserProfiles] = useState<Map<string, UserProfile>>(new Map());
@@ -69,14 +69,20 @@ function Query() {
       document.dispatchEvent(new CustomEvent("nlLaunch", { detail: "welcome-login" }));
       return;
     }
+    // block duplicate submissions
+    if (userPubkey && interests.some(i => i.builderPubkey === userPubkey)) {
+      alert("You have already shown interest.");
+      return;
+    }
+
     setShowInterestDialog(true);
   };
 
-  const handleInterestSubmit = async (
+  async function handleInterestSubmit(
     message: string,
     github?: string,
     proofOfWorkLinks?: ProofOfWorkLink[]
-  ) => {
+  ) {
     if (!moonshot) return;
 
     try {
@@ -113,7 +119,7 @@ function Query() {
       console.error("Failed to submit interest:", error);
       alert("Failed to submit interest. Please try again.");
     }
-  };
+  }
 
   if (loading) {
     return (
