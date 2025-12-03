@@ -5,6 +5,7 @@ import BuilderInfoCard from "./BuilderInfoCard";
 import type { Moonshot, Interest } from "../types/types";
 import { fetchInterests, fetchUpvoteCount, updateMoonshot } from "../utils/nostr";
 import EditMoonshotDialog from "./EditMoonshotDialog";
+import ShareButton from "./ShareButton";
 
 interface MoonshotDetailViewProps {
   moonshot: Moonshot;
@@ -109,6 +110,7 @@ function MoonshotDetailView({ moonshot, onBack, onMoonshotUpdate }: MoonshotDeta
           <div className="flex justify-between items-start mb-4">
             <h1 className="text-4xl font-bold text-white">{currentMoonshot.title}</h1>
             <div className="flex items-center gap-2 text-red-400">
+              <ShareButton moonshot={moonshot} />
               <FiHeart className="text-2xl" />
               <span className="text-xl font-semibold">{upvoteCount}</span>
             </div>
@@ -189,10 +191,7 @@ function MoonshotDetailView({ moonshot, onBack, onMoonshotUpdate }: MoonshotDeta
           ) : (
             <div className="space-y-4">
               {interests.map(interest => (
-                <BuilderInfoCard
-                  key={interest.id}
-                  interest={interest}
-                />
+                <BuilderInfoCard key={interest.id} interest={interest} />
               ))}
             </div>
           )}
