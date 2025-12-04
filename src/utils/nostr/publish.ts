@@ -110,6 +110,7 @@ export async function publishInterest(
 // Publish version history snapshot before updating
 async function publishVersionSnapshot(
     moonshotId: string,
+    creatorPubkey:string,
     currentEventId: string,
     title: string,
     content: string,
@@ -130,7 +131,7 @@ async function publishVersionSnapshot(
     const eventTags = [
         ["d", versionId], // Unique d-tag for this version
         ["t", "moonshot-version"], // Tag to identify as version history
-        ["version-of", moonshotId], // Link to original moonshot d-tag
+        ["a", `30078:${creatorPubkey}:${moonshotId}`],
         ["e", currentEventId], // Link to the event being replaced
         ["title", title],
         ["topics", ...topics],
@@ -163,6 +164,7 @@ async function publishVersionSnapshot(
 // Update moonshot event (replaceable event - same d-tag)
 export async function updateMoonshot(
     moonshotId: string,
+    creatorPubkey:string,
     currentEventId: string,
     currentTitle: string,
     currentContent: string,
@@ -185,6 +187,7 @@ export async function updateMoonshot(
     // Step 1: Publish the current version as a snapshot for history
     await publishVersionSnapshot(
         moonshotId,
+        creatorPubkey,
         currentEventId,
         currentTitle,
         currentContent,

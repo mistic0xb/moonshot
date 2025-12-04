@@ -142,7 +142,7 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
 }
 
 // Fetch version history for a moonshot
-export async function fetchMoonshotVersions(moonshotId: string): Promise<Moonshot[]> {
+export async function fetchMoonshotVersions(moonshotId: string, creatorPubkey: string): Promise<Moonshot[]> {
     const pool = getPool();
     return new Promise(resolve => {
         const versions: Moonshot[] = [];
@@ -156,14 +156,14 @@ export async function fetchMoonshotVersions(moonshotId: string): Promise<Moonsho
 
         const filter = {
             kinds: [30078],
-            "#t": ["moonshot-version"],
+            "#a": [`30078:${creatorPubkey}:${moonshotId}`]
         };
 
         sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
             onevent(event: any) {
                 try {
                     const dTag = event.tags.find((t: string[]) => t[0] === "d");
-                    const versionOfTag = event.tags.find((t: string[]) => t[0] === "version-of");
+                    const aTag = event.tags.find((t: string[]) => t[0] === "a");
                     const eventRefTag = event.tags.find((t: string[]) => t[0] === "e");
                     const titleTag = event.tags.find((t: string[]) => t[0] === "title");
                     const budgetTag = event.tags.find((t: string[]) => t[0] === "budget");
@@ -172,7 +172,7 @@ export async function fetchMoonshotVersions(moonshotId: string): Promise<Moonsho
                     const topicsTag = event.tags.find((t: string[]) => t[0] === "topics");
                     const originalTimestampTag = event.tags.find((t: string[]) => t[0] === "original-timestamp");
 
-                    if (!dTag || versionOfTag[1] !== moonshotId || !titleTag) {
+                    if (!dTag || !aTag || !titleTag) {
                         return;
                     }
 
@@ -212,7 +212,7 @@ export async function fetchMoonshotVersions(moonshotId: string): Promise<Moonsho
 }
 
 // Get count of versions (for badges)
-export async function getVersionCount(moonshotId: string): Promise<number> {
-    const versions = await fetchMoonshotVersions(moonshotId);
+export async function getVersionCount(moonshotId: string, creatorPubkey: string): Promise<number> {
+    const versions = await fetchMoonshotVersions(moonshotId, creatorPubkey);
     return versions.length;
 }

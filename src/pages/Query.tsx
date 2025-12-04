@@ -60,7 +60,10 @@ function Query() {
 
           // Load version history
           setLoadingVersions(true);
-          const fetchedVersions = await fetchMoonshotVersions(fetchedMoonshot.id);
+          const fetchedVersions = await fetchMoonshotVersions(
+            fetchedMoonshot.id,
+            fetchedMoonshot.creatorPubkey
+          );
           setVersions(fetchedVersions);
           setLoadingVersions(false);
         }
@@ -176,10 +179,7 @@ function Query() {
                   </div>
                   <div className="flex gap-3">
                     <ShareButton moonshot={moonshot} />
-                    <UpvoteButton
-                      moonshotEventId={moonshot.eventId}
-                      creatorPubkey={moonshot.creatorPubkey}
-                    />
+                    <UpvoteButton moonshotId={moonshot.id} creatorPubkey={moonshot.creatorPubkey} />
                   </div>
                 </div>
 

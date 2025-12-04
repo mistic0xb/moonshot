@@ -44,8 +44,8 @@ function MoonshotDetailView({
         // Fetch interests, upvotes, and versions
         const [fetchedInterests, upvotes, fetchedVersions] = await Promise.all([
           fetchInterests(currentMoonshot.id),
-          fetchUpvoteCount(currentMoonshot.eventId),
-          fetchMoonshotVersions(currentMoonshot.id),
+          fetchUpvoteCount(currentMoonshot.id, currentMoonshot.creatorPubkey),
+          fetchMoonshotVersions(currentMoonshot.id, currentMoonshot.creatorPubkey),
         ]);
         console.log("Interests:", fetchedInterests);
         console.log("Versions:", fetchedVersions);
@@ -76,6 +76,7 @@ function MoonshotDetailView({
       // Update the moonshot event - pass current and new data
       await updateMoonshot(
         currentMoonshot.id,
+        currentMoonshot.creatorPubkey,
         currentMoonshot.eventId,
         currentMoonshot.title,
         currentMoonshot.content,
@@ -100,7 +101,10 @@ function MoonshotDetailView({
       setCurrentMoonshot(updatedMoonshot);
 
       // Refresh version history after edit
-      const fetchedVersions = await fetchMoonshotVersions(currentMoonshot.id);
+      const fetchedVersions = await fetchMoonshotVersions(
+        currentMoonshot.id,
+        currentMoonshot.creatorPubkey
+      );
       setVersions(fetchedVersions);
 
       // Notify parent component if needed
