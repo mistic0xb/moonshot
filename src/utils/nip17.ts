@@ -9,7 +9,7 @@ import {
     type UnsignedEvent
 } from "nostr-tools";
 import { getPool } from "./nostr";
-import { DEFAULT_RELAYS } from "./relayConfig";
+import { DEFAULT_RELAYS } from "./nostr/relayConfig";
 import type { ChatMessage } from "../types/types";
 
 

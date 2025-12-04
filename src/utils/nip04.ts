@@ -1,6 +1,6 @@
 import type { ChatMessage } from "../types/types";
-import { getPool } from "./nostr";
-import { DEFAULT_RELAYS } from "./relayConfig";
+import { getPool } from "./nostr/pool";
+import { DEFAULT_RELAYS } from "./nostr/relayConfig";
 
 const DB_NAME = "nostr_nip04_messages";
 const DB_VERSION = 1;
