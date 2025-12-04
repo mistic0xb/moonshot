@@ -4,15 +4,14 @@ import { DEFAULT_RELAYS } from "./relayConfig";
 
 // Check if current user has upvoted
 export async function checkUserUpvote(
-    moonshotEventId: string,
+    moonshotId: string,
+    creatorPubkey: string,
     userPubkey: string
 ): Promise<boolean> {
     const pool = getPool();
-
     return new Promise(resolve => {
         let hasUpvoted = false;
         let sub: any;
-
         const timeout = setTimeout(() => {
             if (sub) sub.close();
             resolve(hasUpvoted);
@@ -20,14 +19,13 @@ export async function checkUserUpvote(
 
         const filter = {
             kinds: [7],
-            "#e": [moonshotEventId],
-            authors: [userPubkey],
+            "#a": [`30078:${creatorPubkey}:${moonshotId}`],
+            authors: [userPubkey],  // Filter by user
             limit: 10
         };
 
         sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
             onevent(event: Event) {
-                // Get the latest reaction from this user
                 if (event.content === "+") {
                     hasUpvoted = true;
                 } else if (event.content === "-") {
@@ -45,7 +43,7 @@ export async function checkUserUpvote(
 
 // Toggle upvote (upvote or un-upvote)
 export async function toggleUpvote(
-    moonshotEventId: string,
+    moonshotId: string,
     creatorPubkey: string,
     currentlyUpvoted: boolean
 ): Promise<void> {
@@ -57,10 +55,10 @@ export async function toggleUpvote(
         kind: 7,
         created_at: Math.floor(Date.now() / 1000),
         tags: [
-            ["e", moonshotEventId],
+            ["a", `30078:${creatorPubkey}:${moonshotId}`],
             ["p", creatorPubkey],
         ],
-        content: currentlyUpvoted ? "-" : "+", // Toggle
+        content: currentlyUpvoted ? "-" : "+",
     };
 
     const signedEvent = await window.nostr.signEvent(event);
@@ -77,17 +75,16 @@ export async function toggleUpvote(
 
 // Fetch upvote count (count unique users with latest "+" reaction)
 export async function fetchUpvoteCount(
-    moonshotEventId: string
+    moonshotId: string,
+    creatorPubkey: string
 ): Promise<number> {
     const pool = getPool();
-
     return new Promise(resolve => {
-        const latestReactions = new Map<string, string>(); // pubkey -> reaction
+        const latestReactions = new Map<string, string>();
         let sub: any;
 
         const timeout = setTimeout(() => {
             if (sub) sub.close();
-            // Count users whose latest reaction is "+"
             const count = Array.from(latestReactions.values())
                 .filter(reaction => reaction === "+").length;
             resolve(count);
@@ -95,14 +92,13 @@ export async function fetchUpvoteCount(
 
         const filter = {
             kinds: [7],
-            "#e": [moonshotEventId],
+            "#a": [`30078:${creatorPubkey}:${moonshotId}`],  // FIX: Array syntax
             limit: 500,
         };
 
         sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
             onevent(event: Event) {
                 const existing = latestReactions.get(event.pubkey);
-                // Keep only the latest reaction per user
                 if (!existing || event.created_at > (existing as any).created_at) {
                     latestReactions.set(event.pubkey, event.content);
                 }

@@ -4,11 +4,11 @@ import { checkUserUpvote, toggleUpvote, fetchUpvoteCount } from "../../utils/nos
 import { FiHeart } from "react-icons/fi";
 
 interface UpvoteButtonProps {
-  moonshotEventId: string;
+  moonshotId: string;
   creatorPubkey: string;
 }
 
-function UpvoteButton({ moonshotEventId, creatorPubkey }: UpvoteButtonProps) {
+function UpvoteButton({ moonshotId, creatorPubkey }: UpvoteButtonProps) {
   const { isAuthenticated, userPubkey } = useAuth();
   const [count, setCount] = useState(0);
   const [hasUpvoted, setHasUpvoted] = useState(false);
@@ -18,12 +18,12 @@ function UpvoteButton({ moonshotEventId, creatorPubkey }: UpvoteButtonProps) {
     const loadUpvoteData = async () => {
       try {
         // Fetch count
-        const upvoteCount = await fetchUpvoteCount(moonshotEventId);
+        const upvoteCount = await fetchUpvoteCount(moonshotId, creatorPubkey);
         setCount(upvoteCount);
 
         // Check if current user upvoted
         if (userPubkey) {
-          const userUpvoted = await checkUserUpvote(moonshotEventId, userPubkey);
+          const userUpvoted = await checkUserUpvote(moonshotId, creatorPubkey, userPubkey);
           setHasUpvoted(userUpvoted);
         }
       } catch (error) {
@@ -34,7 +34,7 @@ function UpvoteButton({ moonshotEventId, creatorPubkey }: UpvoteButtonProps) {
     };
 
     loadUpvoteData();
-  }, [moonshotEventId, userPubkey]);
+  }, [moonshotId, userPubkey]);
 
   async function handleUpvote() {
     if (loading) return;
@@ -46,7 +46,7 @@ function UpvoteButton({ moonshotEventId, creatorPubkey }: UpvoteButtonProps) {
 
     setLoading(true);
     try {
-      await toggleUpvote(moonshotEventId, creatorPubkey, hasUpvoted);
+      await toggleUpvote(moonshotId, creatorPubkey, hasUpvoted);
 
       // Update local state
       setHasUpvoted(!hasUpvoted);
