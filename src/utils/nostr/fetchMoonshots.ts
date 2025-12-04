@@ -140,3 +140,79 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
         });
     });
 }
+
+// Fetch version history for a moonshot
+export async function fetchMoonshotVersions(moonshotId: string): Promise<Moonshot[]> {
+    const pool = getPool();
+    return new Promise(resolve => {
+        const versions: Moonshot[] = [];
+        let sub: any;
+
+        const timeout = setTimeout(() => {
+            if (sub) sub.close();
+            console.log("Version fetch timeout");
+            resolve(versions);
+        }, 5000);
+
+        const filter = {
+            kinds: [30078],
+            "#t": ["moonshot-version"],
+        };
+
+        sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
+            onevent(event: any) {
+                try {
+                    const dTag = event.tags.find((t: string[]) => t[0] === "d");
+                    const versionOfTag = event.tags.find((t: string[]) => t[0] === "version-of");
+                    const eventRefTag = event.tags.find((t: string[]) => t[0] === "e");
+                    const titleTag = event.tags.find((t: string[]) => t[0] === "title");
+                    const budgetTag = event.tags.find((t: string[]) => t[0] === "budget");
+                    const timelineTag = event.tags.find((t: string[]) => t[0] === "timeline");
+                    const statusTag = event.tags.find((t: string[]) => t[0] === "status");
+                    const topicsTag = event.tags.find((t: string[]) => t[0] === "topics");
+                    const originalTimestampTag = event.tags.find((t: string[]) => t[0] === "original-timestamp");
+
+                    if (!dTag || !versionOfTag || !titleTag) {
+                        return;
+                    }
+
+                    const version: Moonshot = {
+                        id: dTag[1],
+                        eventId: eventRefTag?.[1] || event.id,
+                        title: titleTag[1],
+                        content: event.content,
+                        budget: budgetTag?.[1] || "TBD",
+                        timeline: timelineTag?.[1] || "TBD",
+                        topics: topicsTag ? topicsTag.slice(1) : [],
+                        status: (statusTag?.[1] as any) || "open",
+                        creatorPubkey: event.pubkey,
+                        isExplorable: false, // Versions are not explorable
+                        createdAt: originalTimestampTag
+                            ? parseInt(originalTimestampTag[1])
+                            : event.created_at * 1000,
+                    };
+
+                    versions.push(version);
+                } catch (err) {
+                    console.error("Failed to parse version:", err);
+                }
+            },
+            oneose() {
+                clearTimeout(timeout);
+                if (sub) sub.close();
+
+                // Sort versions by creation time (newest first)
+                versions.sort((a, b) => b.createdAt - a.createdAt);
+
+                console.log(`Found ${versions.length} versions for moonshot ${moonshotId}`);
+                resolve(versions);
+            },
+        });
+    });
+}
+
+// Get count of versions (for badges)
+export async function getVersionCount(moonshotId: string): Promise<number> {
+    const versions = await fetchMoonshotVersions(moonshotId);
+    return versions.length;
+}

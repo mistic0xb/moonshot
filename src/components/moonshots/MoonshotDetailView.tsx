@@ -1,12 +1,19 @@
 import { useState, useEffect } from "react";
-import { BsArrowLeft, BsPencil, BsTrash2 } from "react-icons/bs";
+import { BsArrowLeft, BsPencil, BsTrash2, BsPencilSquare } from "react-icons/bs";
 import { FiHeart } from "react-icons/fi";
 import BuilderInfoCard from "./../builder/BuilderInfoCard";
 import type { Moonshot, Interest } from "../../types/types";
-import { fetchInterests, fetchUpvoteCount, updateMoonshot, removeMoonshot } from "../../utils/nostr";
+import {
+  fetchInterests,
+  fetchUpvoteCount,
+  updateMoonshot,
+  removeMoonshot,
+  fetchMoonshotVersions,
+} from "../../utils/nostr";
 import EditMoonshotDialog from "./EditMoonshotDialog";
 import ShareButton from "./ShareButton";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
+import MoonshotVersionHistory from "./MoonshotVersionHistory";
 
 interface MoonshotDetailViewProps {
   moonshot: Moonshot;
@@ -23,7 +30,9 @@ function MoonshotDetailView({
 }: MoonshotDetailViewProps) {
   const [interests, setInterests] = useState<Interest[]>([]);
   const [upvoteCount, setUpvoteCount] = useState(0);
+  const [versions, setVersions] = useState<Moonshot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingVersions, setLoadingVersions] = useState(true);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -32,15 +41,19 @@ function MoonshotDetailView({
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Fetch interests and upvotes
-        const [fetchedInterests, upvotes] = await Promise.all([
+        // Fetch interests, upvotes, and versions
+        const [fetchedInterests, upvotes, fetchedVersions] = await Promise.all([
           fetchInterests(currentMoonshot.id),
           fetchUpvoteCount(currentMoonshot.eventId),
+          fetchMoonshotVersions(currentMoonshot.id),
         ]);
         console.log("Interests:", fetchedInterests);
+        console.log("Versions:", fetchedVersions);
 
         setInterests(fetchedInterests);
         setUpvoteCount(upvotes);
+        setVersions(fetchedVersions);
+        setLoadingVersions(false);
       } catch (error) {
         console.error("Failed to load moonshot data:", error);
       } finally {
@@ -60,9 +73,17 @@ function MoonshotDetailView({
     status: string;
   }) => {
     try {
-      // Update the moonshot event - pass the original event ID
+      // Update the moonshot event - pass current and new data
       await updateMoonshot(
         currentMoonshot.id,
+        currentMoonshot.eventId,
+        currentMoonshot.title,
+        currentMoonshot.content,
+        currentMoonshot.budget,
+        currentMoonshot.timeline,
+        currentMoonshot.topics,
+        currentMoonshot.status,
+        currentMoonshot.createdAt,
         updatedData.title,
         updatedData.content,
         updatedData.budget,
@@ -77,6 +98,10 @@ function MoonshotDetailView({
         ...updatedData,
       };
       setCurrentMoonshot(updatedMoonshot);
+
+      // Refresh version history after edit
+      const fetchedVersions = await fetchMoonshotVersions(currentMoonshot.id);
+      setVersions(fetchedVersions);
 
       // Notify parent component if needed
       if (onMoonshotUpdate) {
@@ -147,7 +172,15 @@ function MoonshotDetailView({
           {/* Moonshot Overview Card */}
           <div className="card-style p-8 mb-8">
             <div className="flex justify-between items-start mb-4">
-              <h1 className="text-4xl font-bold text-white">{currentMoonshot.title}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-4xl font-bold text-white">{currentMoonshot.title}</h1>
+                {versions.length > 0 && (
+                  <span className="flex items-center gap-1 px-2 py-1 bg-sky-900/30 border border-sky-500/30 text-sky-300 text-xs rounded">
+                    <BsPencilSquare className="text-xs" />
+                    Edited
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-2 text-red-400">
                 <ShareButton moonshot={moonshot} />
                 <FiHeart className="text-2xl" />
@@ -211,8 +244,11 @@ function MoonshotDetailView({
             </div>
           </div>
 
+          {/* Version History */}
+          <MoonshotVersionHistory versions={versions} loading={loadingVersions} />
+
           {/* Interested Builders Section */}
-          <div>
+          <div className="mt-8">
             <h2 className="text-3xl font-bold text-white mb-6">
               Interested Builders ({interests.length})
             </h2>

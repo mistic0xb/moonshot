@@ -10,6 +10,7 @@ export {
 export {
     fetchAllMoonshots,
     fetchMoonshotById,
+    fetchMoonshotVersions,
 } from "./fetchMoonshots";
 
 // fetch interests
@@ -32,7 +33,7 @@ export {
 } from "./remove"
 
 // pool 
-export {getPool} from "./pool";
+export { getPool } from "./pool";
 
 // configs
 export * from "./relayConfig";

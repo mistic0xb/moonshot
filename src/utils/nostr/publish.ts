@@ -51,7 +51,6 @@ export async function publishMoonshot(
     return moonshotId;
 }
 
-
 // Publish interest event (kind 30078)
 export async function publishInterest(
     moonshotId: string, // d-tag of moonshot
@@ -108,31 +107,105 @@ export async function publishInterest(
     return interestId;
 }
 
-// Update moonshot event (replaceable event - same d-tag)
-export async function updateMoonshot(
+// Publish version history snapshot before updating
+async function publishVersionSnapshot(
     moonshotId: string,
+    currentEventId: string,
     title: string,
     content: string,
     budget: string,
     timeline: string,
     topics: string[],
     status: string,
-): Promise<string> {
+    createdAt: number
+): Promise<void> {
     if (!window.nostr) {
         throw new Error("Nostr extension not found");
     }
 
     const pool = getPool();
+    const versionId = uuidv4();
 
-    // Build tags array (same d-tag for replaceable event)
+    // Build tags for version snapshot
     const eventTags = [
-        ["d", moonshotId], // Same d-tag to replace the event
-        ["t", "moonshot"],
+        ["d", versionId], // Unique d-tag for this version
+        ["t", "moonshot-version"], // Tag to identify as version history
+        ["version-of", moonshotId], // Link to original moonshot d-tag
+        ["e", currentEventId], // Link to the event being replaced
         ["title", title],
         ["topics", ...topics],
         ["budget", budget],
         ["timeline", timeline],
         ["status", status],
+        ["original-timestamp", createdAt.toString()] // Preserve original creation time
+    ];
+
+    const event = {
+        kind: 30078,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: eventTags,
+        content: content,
+    };
+
+    console.log("Publishing version snapshot:", event);
+
+    const signedEvent = await window.nostr.signEvent(event);
+    const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
+
+    await Promise.race([
+        Promise.all(pubs),
+        new Promise(resolve => setTimeout(resolve, 5000))
+    ]);
+
+    console.log("Version snapshot published");
+}
+
+// Update moonshot event (replaceable event - same d-tag)
+export async function updateMoonshot(
+    moonshotId: string,
+    currentEventId: string,
+    currentTitle: string,
+    currentContent: string,
+    currentBudget: string,
+    currentTimeline: string,
+    currentTopics: string[],
+    currentStatus: string,
+    currentCreatedAt: number,
+    newTitle: string,
+    newContent: string,
+    newBudget: string,
+    newTimeline: string,
+    newTopics: string[],
+    newStatus: string,
+): Promise<string> {
+    if (!window.nostr) {
+        throw new Error("Nostr extension not found");
+    }
+
+    // Step 1: Publish the current version as a snapshot for history
+    await publishVersionSnapshot(
+        moonshotId,
+        currentEventId,
+        currentTitle,
+        currentContent,
+        currentBudget,
+        currentTimeline,
+        currentTopics,
+        currentStatus,
+        currentCreatedAt
+    );
+
+    // Step 2: Update the main moonshot event
+    const pool = getPool();
+
+    const eventTags = [
+        ["d", moonshotId], // Same d-tag to replace the event
+        ["t", "moonshot"],
+        ["title", newTitle],
+        ["topics", ...newTopics],
+        ["budget", newBudget],
+        ["timeline", newTimeline],
+        ["status", newStatus],
         ["isExplorable", "true"]
     ];
 
@@ -140,7 +213,7 @@ export async function updateMoonshot(
         kind: 30078,
         created_at: Math.floor(Date.now() / 1000), // New timestamp
         tags: eventTags,
-        content: content,
+        content: newContent,
     };
 
     console.log("Updating moonshot event:", event);

@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router";
+import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "../context/AuthContext";
 import type { Moonshot, ProofOfWorkLink, Interest, UserProfile } from "../types/types";
 import RichTextViewer from "../components/richtext/RichTextViewer";
 import ShareButton from "../components/moonshots/ShareButton";
 import UpvoteButton from "../components/moonshots/UpvoteButton";
 import InterestDialog from "../components/interests/InterestDialog";
+import MoonshotVersionHistory from "../components/moonshots/MoonshotVersionHistory";
 import {
   fetchMoonshotById,
   publishInterest,
   fetchInterests,
   fetchUserProfile,
+  fetchMoonshotVersions,
 } from "../utils/nostr";
 
 function Query() {
@@ -19,8 +22,10 @@ function Query() {
   const [moonshot, setMoonshot] = useState<Moonshot | null>(null);
   const [interests, setInterests] = useState<Interest[]>([]);
   const [userProfiles, setUserProfiles] = useState<Map<string, UserProfile>>(new Map());
+  const [versions, setVersions] = useState<Moonshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingInterests, setLoadingInterests] = useState(true);
+  const [loadingVersions, setLoadingVersions] = useState(true);
   const [showInterestDialog, setShowInterestDialog] = useState(false);
 
   useEffect(() => {
@@ -52,6 +57,12 @@ function Query() {
             }
           });
           setUserProfiles(profileMap);
+
+          // Load version history
+          setLoadingVersions(true);
+          const fetchedVersions = await fetchMoonshotVersions(fetchedMoonshot.id);
+          setVersions(fetchedVersions);
+          setLoadingVersions(false);
         }
       } catch (error) {
         console.error("Failed to fetch moonshot:", error);
@@ -152,7 +163,17 @@ function Query() {
             <div className="lg:col-span-2">
               <div className="card-style p-8 mb-6">
                 <div className="flex justify-between items-start mb-6">
-                  <h1 className="text-4xl font-bold text-white">{moonshot.title}</h1>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h1 className="text-4xl font-bold text-white">{moonshot.title}</h1>
+                      {versions.length > 0 && (
+                        <span className="flex items-center gap-1 px-2 py-1 bg-sky-900/30 border border-sky-500/30 text-sky-300 text-xs rounded">
+                          <BsPencilSquare className="text-xs" />
+                          Edited
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   <div className="flex gap-3">
                     <ShareButton moonshot={moonshot} />
                     <UpvoteButton
@@ -208,6 +229,9 @@ function Query() {
                   {isAuthenticated ? "I'm Interested" : "Login to Show Interest"}
                 </button>
               </div>
+
+              {/* Version History */}
+              <MoonshotVersionHistory versions={versions} loading={loadingVersions} />
             </div>
 
             {/* Right Column - Interested Builders */}
