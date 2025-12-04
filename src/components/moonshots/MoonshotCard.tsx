@@ -1,7 +1,7 @@
 import { FiHeart, FiUsers } from "react-icons/fi";
-import type { Moonshot, UserProfile } from "../types/types";
+import type { Moonshot, UserProfile } from "../../types/types";
 import { useEffect, useState } from "react";
-import { fetchUpvoteCount, fetchInterests, fetchUserProfile } from "../utils/nostr";
+import { fetchUpvoteCount, fetchInterests, fetchUserProfile } from "../../utils/nostr";
 
 interface MoonshotCardProps {
   moonshot: Moonshot;

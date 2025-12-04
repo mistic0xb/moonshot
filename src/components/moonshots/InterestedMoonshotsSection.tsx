@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { BsChevronDown, BsChevronUp, BsChat } from "react-icons/bs";
-import type { Moonshot, Interest } from "../types/types";
-import { fetchMoonshotById } from "../utils/nostr";
-import BuilderChatBox from "./BuilderChatBox";
+import type { Interest, Moonshot } from "../../types/types";
+import { fetchMoonshotById } from "../../utils/nostr";
+import BuilderChatBox from "../builder/BuilderChatBox";
 
 interface InterestedMoonshotsSectionProps {
   interests: Interest[];

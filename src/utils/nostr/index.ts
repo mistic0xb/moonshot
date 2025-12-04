@@ -3,6 +3,7 @@ export {
     publishInterest,
     publishMoonshot,
     publishNostrShare,
+    updateMoonshot
 } from "./publish";
 
 // fetch moonshots
@@ -24,6 +25,11 @@ export {
     checkUserUpvote,
     toggleUpvote
 } from "./upvotes";
+
+// remove
+export {
+    removeMoonshot,
+} from "./remove"
 
 // pool 
 export {getPool} from "./pool";

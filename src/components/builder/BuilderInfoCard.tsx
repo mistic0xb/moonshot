@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { BsGithub, BsLink45Deg, BsChat, BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { nip19 } from "nostr-tools";
-import type { Interest, UserProfile } from "../types/types";
-import { fetchUserProfile } from "../utils/nostr";
+import type { Interest, UserProfile } from "../../types/types";
+import { fetchUserProfile } from "../../utils/nostr";
 import BuilderChatBox from "./BuilderChatBox";
 
 interface BuilderInfoCardProps {

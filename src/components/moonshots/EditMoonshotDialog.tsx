@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BsPlus, BsX } from "react-icons/bs";
-import type { Moonshot } from "../types/types";
+import type { Moonshot } from "../../types/types";
 
 interface EditMoonshotDialogProps {
   moonshot: Moonshot;

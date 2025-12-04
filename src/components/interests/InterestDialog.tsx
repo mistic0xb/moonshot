@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { BsGithub, BsPlus, BsX } from "react-icons/bs";
-import { useAuth } from "../context/AuthContext";
 import { nip19 } from "nostr-tools";
-import type { ProofOfWorkLink } from "../types/types";
+import type { ProofOfWorkLink } from "../../types/types";
+import { useAuth } from "../../context/AuthContext";
 
 interface InterestDialogProps {
   moonshotEventId: string;

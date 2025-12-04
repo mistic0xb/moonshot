@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
-import RichTextEditor from "../components/RichTextEditor";
+import RichTextEditor from "../components/richtext/RichTextEditor";
 import { fetchAllMoonshots , publishMoonshot } from "../utils/nostr";
 
 function CreateMoonshot() {

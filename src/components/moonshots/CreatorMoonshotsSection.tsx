@@ -1,7 +1,7 @@
 import { useState } from "react";
 import MoonshotCard from "./MoonshotCard";
 import MoonshotDetailView from "./MoonshotDetailView";
-import type { Moonshot } from "../types/types";
+import type { Moonshot } from "../../types/types";
 
 interface CreatorMoonshotsSectionProps {
   moonshots: Moonshot[];

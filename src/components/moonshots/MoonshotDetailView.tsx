@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { BsArrowLeft, BsPencil, BsTrash2 } from "react-icons/bs";
 import { FiHeart } from "react-icons/fi";
-import BuilderInfoCard from "./BuilderInfoCard";
-import type { Moonshot, Interest } from "../types/types";
-import { fetchInterests, fetchUpvoteCount, updateMoonshot, removeMoonshot } from "../utils/nostr";
+import BuilderInfoCard from "./../builder/BuilderInfoCard";
+import type { Moonshot, Interest } from "../../types/types";
+import { fetchInterests, fetchUpvoteCount, updateMoonshot, removeMoonshot } from "../../utils/nostr";
 import EditMoonshotDialog from "./EditMoonshotDialog";
-import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import ShareButton from "./ShareButton";
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 
 interface MoonshotDetailViewProps {
   moonshot: Moonshot;

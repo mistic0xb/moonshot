@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import MoonshotCard from "../components/MoonshotCard";
+import MoonshotCard from "../components/moonshots/MoonshotCard";
 import type { Moonshot } from "../types/types";
 import { fetchAllMoonshots } from "../utils/nostr";
 

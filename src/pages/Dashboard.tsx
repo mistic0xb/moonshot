@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import CreatorMoonshotsSection from "../components/CreatorMoonshotsSection";
-import InterestedMoonshotsSection from "../components/InterestedMoonshotsSection";
+import CreatorMoonshotsSection from "../components/moonshots/CreatorMoonshotsSection";
+import InterestedMoonshotsSection from "../components/moonshots/InterestedMoonshotsSection";
 import type { Moonshot, Interest } from "../types/types";
 import { fetchAllMoonshots, fetchUserInterests } from "../utils/nostr";
 
@@ -23,7 +23,9 @@ function Dashboard() {
       try {
         // Fetch moonshots created by user
         const allMoonshots = await fetchAllMoonshots();
-        const userMoonshots = allMoonshots.filter(m => m.creatorPubkey === userPubkey && m.isExplorable); // temp fix(isExplorable), need to refactor 
+        const userMoonshots = allMoonshots.filter(
+          m => m.creatorPubkey === userPubkey && m.isExplorable
+        ); // temp fix(isExplorable), need to refactor
         setMyMoonshots(userMoonshots);
       } catch (error) {
         console.error("Failed to fetch moonshots:", error);

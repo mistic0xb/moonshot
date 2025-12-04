@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { checkUserUpvote, toggleUpvote, fetchUpvoteCount } from '../utils/nostr';
-import { FiHeart } from 'react-icons/fi';
+import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { checkUserUpvote, toggleUpvote, fetchUpvoteCount } from "../../utils/nostr";
+import { FiHeart } from "react-icons/fi";
 
 interface UpvoteButtonProps {
   moonshotEventId: string;
@@ -27,7 +27,7 @@ function UpvoteButton({ moonshotEventId, creatorPubkey }: UpvoteButtonProps) {
           setHasUpvoted(userUpvoted);
         }
       } catch (error) {
-        console.error('Failed to load upvote data:', error);
+        console.error("Failed to load upvote data:", error);
       } finally {
         setLoading(false);
       }
@@ -36,41 +36,41 @@ function UpvoteButton({ moonshotEventId, creatorPubkey }: UpvoteButtonProps) {
     loadUpvoteData();
   }, [moonshotEventId, userPubkey]);
 
-  async function handleUpvote(){
+  async function handleUpvote() {
     if (loading) return;
 
     if (!isAuthenticated) {
-      document.dispatchEvent(new CustomEvent('nlLaunch', { detail: 'login' }));
+      document.dispatchEvent(new CustomEvent("nlLaunch", { detail: "login" }));
       return;
     }
 
     setLoading(true);
     try {
       await toggleUpvote(moonshotEventId, creatorPubkey, hasUpvoted);
-      
+
       // Update local state
       setHasUpvoted(!hasUpvoted);
-      setCount(prev => hasUpvoted ? prev - 1: prev + 1);
+      setCount(prev => (hasUpvoted ? prev - 1 : prev + 1));
     } catch (error) {
-      console.error('Failed to toggle upvote:', error);
-      alert('Failed to upvote. Please try again.');
+      console.error("Failed to toggle upvote:", error);
+      alert("Failed to upvote. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <button
       onClick={handleUpvote}
       disabled={loading}
       className={`flex items-center gap-2 px-4 py-2 border transition-all rounded ${
-        hasUpvoted 
-          ? 'bg-sky-600 border-sky-600 text-white' 
-          : 'border-sky-500/50 text-sky-400 hover:border-sky-400'
-      } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        hasUpvoted
+          ? "bg-sky-600 border-sky-600 text-white"
+          : "border-sky-500/50 text-sky-400 hover:border-sky-400"
+      } ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
     >
       <FiHeart className="text-xl" />
-      <span>{loading ? '...' : count}</span>
+      <span>{loading ? "..." : count}</span>
     </button>
   );
 }

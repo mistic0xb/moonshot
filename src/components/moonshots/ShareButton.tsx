@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { Moonshot } from "../types/types";
-import { publishNostrShare } from "../utils/nostr";
+import type { Moonshot } from "../../types/types";
+import { publishNostrShare } from "../../utils/nostr";
 import { BsLink, BsShare, BsX } from "react-icons/bs";
 
 interface ShareButtonProps {

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import { useAuth } from "../context/AuthContext";
-import UpvoteButton from "../components/UpvoteButton";
-import ShareButton from "../components/ShareButton";
-import InterestDialog from "../components/InterestDialog";
 import type { Moonshot, ProofOfWorkLink, Interest, UserProfile } from "../types/types";
-import RichTextViewer from "../components/RichTextViewer";
+import RichTextViewer from "../components/richtext/RichTextViewer";
+import ShareButton from "../components/moonshots/ShareButton";
+import UpvoteButton from "../components/moonshots/UpvoteButton";
+import InterestDialog from "../components/interests/InterestDialog";
 import {
   fetchMoonshotById,
   publishInterest,
