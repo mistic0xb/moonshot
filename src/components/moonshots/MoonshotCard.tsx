@@ -20,7 +20,7 @@ function MoonshotCard({ moonshot, onClick }: MoonshotCardProps) {
       try {
         // Fetch upvote count, interests, and creator profile in parallel
         const [upvotes, interests, profile] = await Promise.all([
-          fetchUpvoteCount(moonshot.eventId),
+          fetchUpvoteCount(moonshot.id,moonshot.creatorPubkey),
           fetchInterests(moonshot.id),
           fetchUserProfile(moonshot.creatorPubkey)
         ]);
