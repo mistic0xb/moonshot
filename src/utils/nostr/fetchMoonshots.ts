@@ -172,7 +172,7 @@ export async function fetchMoonshotVersions(moonshotId: string): Promise<Moonsho
                     const topicsTag = event.tags.find((t: string[]) => t[0] === "topics");
                     const originalTimestampTag = event.tags.find((t: string[]) => t[0] === "original-timestamp");
 
-                    if (!dTag || !versionOfTag || !titleTag) {
+                    if (!dTag || versionOfTag[1] !== moonshotId || !titleTag) {
                         return;
                     }
 
