@@ -8,7 +8,6 @@ interface MoonshotCardProps {
   onClick: () => void;
 }
 
-
 function MoonshotCard({ moonshot, onClick }: MoonshotCardProps) {
   const [upvoteCount, setUpvoteCount] = useState(0);
   const [interestCount, setInterestCount] = useState(0);
@@ -20,16 +19,16 @@ function MoonshotCard({ moonshot, onClick }: MoonshotCardProps) {
       try {
         // Fetch upvote count, interests, and creator profile in parallel
         const [upvotes, interests, profile] = await Promise.all([
-          fetchUpvoteCount(moonshot.id,moonshot.creatorPubkey),
-          fetchInterests(moonshot.id),
-          fetchUserProfile(moonshot.creatorPubkey)
+          fetchUpvoteCount(moonshot.id, moonshot.creatorPubkey),
+          fetchInterests(moonshot.id, moonshot.creatorPubkey),
+          fetchUserProfile(moonshot.creatorPubkey),
         ]);
 
         setUpvoteCount(upvotes);
         setInterestCount(interests.length);
         setCreatorProfile(profile);
       } catch (error) {
-        console.error('Failed to load card data:', error);
+        console.error("Failed to load card data:", error);
       } finally {
         setLoading(false);
       }
@@ -94,7 +93,7 @@ function MoonshotCard({ moonshot, onClick }: MoonshotCardProps) {
       {moonshot.topics && moonshot.topics.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-3">
           {moonshot.topics.slice(0, 3).map((topic, index) => (
-            <span 
+            <span
               key={index}
               className="px-2 py-1 bg-sky-900/20 border border-sky-500/20 text-sky-300 text-xs rounded"
             >
@@ -117,12 +116,17 @@ function MoonshotCard({ moonshot, onClick }: MoonshotCardProps) {
           {moonshot.timeline} months
         </span>
         {moonshot.status && (
-          <span className={`px-3 py-1 border ${
-            moonshot.status === 'open' ? 'bg-green-900/20 border-green-500/20 text-green-300' :
-            moonshot.status === 'in-progress' ? 'bg-blue-900/20 border-blue-500/20 text-blue-300' :
-            moonshot.status === 'completed' ? 'bg-purple-900/20 border-purple-500/20 text-purple-300' :
-            'bg-gray-800 border-gray-600 text-gray-400'
-          }`}>
+          <span
+            className={`px-3 py-1 border ${
+              moonshot.status === "open"
+                ? "bg-green-900/20 border-green-500/20 text-green-300"
+                : moonshot.status === "in-progress"
+                ? "bg-blue-900/20 border-blue-500/20 text-blue-300"
+                : moonshot.status === "completed"
+                ? "bg-purple-900/20 border-purple-500/20 text-purple-300"
+                : "bg-gray-800 border-gray-600 text-gray-400"
+            }`}
+          >
             {moonshot.status}
           </span>
         )}

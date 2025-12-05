@@ -4,7 +4,7 @@ import { getPool } from "./pool";
 import { DEFAULT_RELAYS } from "./relayConfig";
 
 // Fetch interests for a moonshot (kind 30078)
-export async function fetchInterests(creatorPubkey: string, moonshotId: string): Promise<Interest[]> {
+export async function fetchInterests(moonshotId: string, creatorPubkey: string): Promise<Interest[]> {
     const pool = getPool();
 
     return new Promise(resolve => {

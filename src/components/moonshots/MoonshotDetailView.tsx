@@ -55,13 +55,13 @@ function MoonshotDetailView({
         ]);
         console.log("Interests:", fetchedInterests);
         console.log("Versions:", fetchedVersions);
+        console.log("comments:", fetchedComments);
 
         setInterests(fetchedInterests);
         setUpvoteCount(upvotes);
         setVersions(fetchedVersions);
         setComments(fetchedComments);
-        console.log("FETCHED_COMMENTS:", fetchedComments);
-        setTotalChipIn(calculateTotalChipIn(comments));
+        setTotalChipIn(calculateTotalChipIn(fetchedComments));
         setLoadingVersions(false);
       } catch (error) {
         console.error("Failed to load moonshot data:", error);
