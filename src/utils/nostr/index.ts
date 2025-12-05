@@ -31,7 +31,8 @@ export {
 export {
     publishComment,
     fetchComments,
-    buildCommentTree
+    buildCommentTree,
+    calculateTotalChipIn
 } from "./comments"
 
 // remove

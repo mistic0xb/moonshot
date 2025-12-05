@@ -92,7 +92,7 @@ export async function fetchUpvoteCount(
 
         const filter = {
             kinds: [7],
-            "#a": [`30078:${creatorPubkey}:${moonshotId}`],  // FIX: Array syntax
+            "#a": [`30078:${creatorPubkey}:${moonshotId}`],
             limit: 500,
         };
 

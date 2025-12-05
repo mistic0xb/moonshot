@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { BsArrowLeft, BsPencil, BsTrash2, BsPencilSquare } from "react-icons/bs";
 import { FiHeart } from "react-icons/fi";
 import BuilderInfoCard from "./../builder/BuilderInfoCard";
-import type { Moonshot, Interest } from "../../types/types";
+import type { Moonshot, Interest, Comment } from "../../types/types";
 import {
   fetchInterests,
   fetchUpvoteCount,
   updateMoonshot,
   removeMoonshot,
   fetchMoonshotVersions,
+  fetchComments,
+  calculateTotalChipIn,
 } from "../../utils/nostr";
 import EditMoonshotDialog from "./EditMoonshotDialog";
 import ShareButton from "./ShareButton";
@@ -32,8 +34,10 @@ function MoonshotDetailView({
   const [interests, setInterests] = useState<Interest[]>([]);
   const [upvoteCount, setUpvoteCount] = useState(0);
   const [versions, setVersions] = useState<Moonshot[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingVersions, setLoadingVersions] = useState(true);
+  const [totalChipIn, setTotalChipIn] = useState(0);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -43,10 +47,11 @@ function MoonshotDetailView({
     const loadData = async () => {
       try {
         // Fetch interests, upvotes, and versions
-        const [fetchedInterests, upvotes, fetchedVersions] = await Promise.all([
+        const [fetchedInterests, upvotes, fetchedVersions, fetchedComments] = await Promise.all([
           fetchInterests(currentMoonshot.id),
           fetchUpvoteCount(currentMoonshot.id, currentMoonshot.creatorPubkey),
           fetchMoonshotVersions(currentMoonshot.id, currentMoonshot.creatorPubkey),
+          fetchComments(currentMoonshot.creatorPubkey, currentMoonshot.id),
         ]);
         console.log("Interests:", fetchedInterests);
         console.log("Versions:", fetchedVersions);
@@ -54,6 +59,9 @@ function MoonshotDetailView({
         setInterests(fetchedInterests);
         setUpvoteCount(upvotes);
         setVersions(fetchedVersions);
+        setComments(fetchedComments);
+        console.log("FETCHED_COMMENTS:", fetchedComments);
+        setTotalChipIn(calculateTotalChipIn(comments));
         setLoadingVersions(false);
       } catch (error) {
         console.error("Failed to load moonshot data:", error);
@@ -208,7 +216,7 @@ function MoonshotDetailView({
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               <div className="bg-blackish border border-sky-500/30 p-4 rounded">
                 <p className="text-gray-400 text-sm mb-1">Budget</p>
                 <p className="text-sky-300 text-xl font-bold">{currentMoonshot.budget} sats</p>
@@ -239,8 +247,13 @@ function MoonshotDetailView({
                 <p className="text-gray-400 text-sm mb-1">Interested</p>
                 <p className="text-sky-300 text-xl font-bold">{interests.length}</p>
               </div>
+              <div className="bg-blackish border border-amber-500/30 p-4 rounded">
+                <p className="text-gray-400 text-sm mb-1">Expected Chip-in</p>
+                <p className="text-amber-300 text-xl font-bold">
+                  {totalChipIn > 0 ? `${totalChipIn.toLocaleString()} sats` : "0 sats"}
+                </p>
+              </div>
             </div>
-
             {/* Content Preview */}
             <div className="prose prose-invert max-w-none">
               <div className="text-gray-300 whitespace-pre-wrap">
@@ -257,6 +270,8 @@ function MoonshotDetailView({
             moonshotId={moonshot.id}
             moonshotCreatorPubkey={moonshot.creatorPubkey}
             isAuthenticated={true}
+            isCollapsed={true}
+            fetchedComments={comments}
           />
 
           {/* Interested Builders Section */}

@@ -6,16 +6,16 @@ import type { Comment } from '../../types/types';
 
 // Fetch comments for a moonshot (kind 30078)
 export async function fetchComments(
-    creatorPubkey: string, 
+    creatorPubkey: string,
     moonshotId: string
 ): Promise<Comment[]> {
     const pool = getPool();
-    
+
     return new Promise(resolve => {
         const comments: Comment[] = [];
         const seen = new Set<string>();
         let sub: any;
-        
+
         const timeout = setTimeout(() => {
             if (sub) sub.close();
             console.log("Fetched comments for moonshot:", moonshotId, "Count:", comments.length);
@@ -140,7 +140,7 @@ export function buildCommentTree(comments: Comment[]): Comment[] {
     // Second pass: build tree
     comments.forEach(comment => {
         const commentWithReplies = commentMap.get(comment.eventId)!;
-        
+
         if (comment.parentCommentId) {
             // This is a reply, add to parent
             const parent = commentMap.get(comment.parentCommentId);
@@ -170,3 +170,11 @@ export function buildCommentTree(comments: Comment[]): Comment[] {
 
     return rootComments;
 }
+
+export function calculateTotalChipIn(comments: Comment[]): number {
+    return comments.reduce((total, comment) => {
+        const commentChipIn = comment.chipIn || 0;
+        const repliesChipIn = comment.replies ? calculateTotalChipIn(comment.replies) : 0;
+        return total + commentChipIn + repliesChipIn;
+    }, 0);
+};

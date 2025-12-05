@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "../context/AuthContext";
-import type { Moonshot, ProofOfWorkLink, Interest, UserProfile } from "../types/types";
+import type { Moonshot, ProofOfWorkLink, Interest, UserProfile, Comment } from "../types/types";
 import RichTextViewer from "../components/richtext/RichTextViewer";
 import ShareButton from "../components/moonshots/ShareButton";
 import UpvoteButton from "../components/moonshots/UpvoteButton";
@@ -15,6 +15,7 @@ import {
   fetchInterests,
   fetchUserProfile,
   fetchMoonshotVersions,
+  fetchComments,
 } from "../utils/nostr";
 
 function Query() {
@@ -22,6 +23,7 @@ function Query() {
   const { isAuthenticated, userPubkey } = useAuth();
   const [moonshot, setMoonshot] = useState<Moonshot | null>(null);
   const [interests, setInterests] = useState<Interest[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [userProfiles, setUserProfiles] = useState<Map<string, UserProfile>>(new Map());
   const [versions, setVersions] = useState<Moonshot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +46,13 @@ function Query() {
           // Load interests for this moonshot
           const fetchedInterests = await fetchInterests(fetchedMoonshot.id);
           setInterests(fetchedInterests);
+
+          // Load comments
+          const fetchedComments = await fetchComments(
+            fetchedMoonshot.creatorPubkey,
+            fetchedMoonshot.id
+          );
+          setComments(fetchedComments);
 
           // Fetch profiles for all interested builders
           const profilePromises = fetchedInterests.map(interest =>
@@ -236,6 +245,7 @@ function Query() {
                 moonshotId={moonshot.id}
                 moonshotCreatorPubkey={moonshot.creatorPubkey}
                 isAuthenticated={isAuthenticated}
+                fetchedComments={comments}
               />
             </div>
 
