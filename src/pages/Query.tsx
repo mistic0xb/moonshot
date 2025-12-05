@@ -8,6 +8,7 @@ import ShareButton from "../components/moonshots/ShareButton";
 import UpvoteButton from "../components/moonshots/UpvoteButton";
 import InterestDialog from "../components/interests/InterestDialog";
 import MoonshotVersionHistory from "../components/moonshots/MoonshotVersionHistory";
+import CommentSection from "../components/comments/CommentSection";
 import {
   fetchMoonshotById,
   publishInterest,
@@ -160,7 +161,7 @@ function Query() {
   return (
     <>
       <div className="min-h-screen bg-blackish py-12">
-        <div className="max-w-6xl mx-auto px-4">
+        <div className="max-w-8xl mx-auto px-32">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Moonshot Details */}
             <div className="lg:col-span-2">
@@ -230,8 +231,12 @@ function Query() {
                 </button>
               </div>
 
-              {/* Version History */}
-              <MoonshotVersionHistory versions={versions} loading={loadingVersions} />
+              {/* Comment Section */}
+              <CommentSection
+                moonshotId={moonshot.id}
+                moonshotCreatorPubkey={moonshot.creatorPubkey}
+                isAuthenticated={isAuthenticated}
+              />
             </div>
 
             {/* Right Column - Interested Builders */}
@@ -298,6 +303,8 @@ function Query() {
                     })}
                   </div>
                 )}
+                {/* Version History */}
+                <MoonshotVersionHistory versions={versions} loading={loadingVersions} />
               </div>
             </div>
           </div>

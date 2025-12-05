@@ -102,3 +102,15 @@ export interface ChatMessage {
     moonshotId?: string;
     interestId?: string;
 }
+
+export interface Comment {
+    id: string; // d-tag UUID
+    eventId: string;
+    moonshotId: string;
+    authorPubkey: string;
+    content: string;
+    chipIn: number; // Sats willing to contribute (0 = none)
+    parentCommentId?: string; // If reply, parent comment event ID
+    createdAt: number;
+    replies?: Comment[]; // For nested display
+}

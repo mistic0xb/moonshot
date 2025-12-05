@@ -14,6 +14,7 @@ import EditMoonshotDialog from "./EditMoonshotDialog";
 import ShareButton from "./ShareButton";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import MoonshotVersionHistory from "./MoonshotVersionHistory";
+import CommentSection from "../comments/CommentSection";
 
 interface MoonshotDetailViewProps {
   moonshot: Moonshot;
@@ -250,6 +251,13 @@ function MoonshotDetailView({
 
           {/* Version History */}
           <MoonshotVersionHistory versions={versions} loading={loadingVersions} />
+
+          {/* Comment Section */}
+          <CommentSection
+            moonshotId={moonshot.id}
+            moonshotCreatorPubkey={moonshot.creatorPubkey}
+            isAuthenticated={true}
+          />
 
           {/* Interested Builders Section */}
           <div className="mt-8">

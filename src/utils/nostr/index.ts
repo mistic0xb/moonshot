@@ -27,6 +27,13 @@ export {
     toggleUpvote
 } from "./upvotes";
 
+// comments
+export {
+    publishComment,
+    fetchComments,
+    buildCommentTree
+} from "./comments"
+
 // remove
 export {
     removeMoonshot,
