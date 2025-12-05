@@ -69,7 +69,7 @@ export async function publishInterest(
     const tags = [
         ["d", interestId],
         ["t", "moonshot-interest"],
-        ["moonshot", moonshotId], // Reference to moonshot d-tag
+        ["a", `30078:${creatorPubkey}:${moonshotId}`],
         ["e", moonshotEventId], // Reference to moonshot event ID
         ["p", creatorPubkey],
     ];
@@ -110,7 +110,7 @@ export async function publishInterest(
 // Publish version history snapshot before updating
 async function publishVersionSnapshot(
     moonshotId: string,
-    creatorPubkey:string,
+    creatorPubkey: string,
     currentEventId: string,
     title: string,
     content: string,
@@ -164,7 +164,7 @@ async function publishVersionSnapshot(
 // Update moonshot event (replaceable event - same d-tag)
 export async function updateMoonshot(
     moonshotId: string,
-    creatorPubkey:string,
+    creatorPubkey: string,
     currentEventId: string,
     currentTitle: string,
     currentContent: string,

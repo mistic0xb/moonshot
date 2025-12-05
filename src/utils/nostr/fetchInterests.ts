@@ -4,7 +4,7 @@ import { getPool } from "./pool";
 import { DEFAULT_RELAYS } from "./relayConfig";
 
 // Fetch interests for a moonshot (kind 30078)
-export async function fetchInterests(moonshotId: string): Promise<Interest[]> {
+export async function fetchInterests(creatorPubkey: string, moonshotId: string): Promise<Interest[]> {
     const pool = getPool();
 
     return new Promise(resolve => {
@@ -20,6 +20,7 @@ export async function fetchInterests(moonshotId: string): Promise<Interest[]> {
 
         const filter = {
             kinds: [30078],
+            "#a": [`30078:${creatorPubkey}:${moonshotId}`],
             "#t": ["moonshot-interest"],
             limit: 100,
         };
@@ -35,25 +36,20 @@ export async function fetchInterests(moonshotId: string): Promise<Interest[]> {
 
                 try {
                     const dTag = event.tags.find(t => t[0] === "d");
-                    const moonshotTag = event.tags.find(t => t[0] === "moonshot");
+                    const aTag = event.tags.find(t => t[0] === "a");
                     const moonshotEventTag = event.tags.find(t => t[0] === "e");
                     const githubTag = event.tags.find(t => t[0] === "github");
                     const proofTags = event.tags.filter(t => t[0] === "proof");
 
-                    if (!dTag || !moonshotTag) {
+                    if (!dTag || !aTag) {
                         console.warn("Interest event missing required tags:", event);
-                        return;
-                    }
-
-                    if (moonshotTag[1] !== moonshotId) {
-                        console.log(`Skipping interest - expected ${moonshotId}, got ${moonshotTag[1]}`);
                         return;
                     }
 
                     const interest: Interest = {
                         id: dTag[1],
                         eventId: event.id,
-                        moonshotId: moonshotTag[1],
+                        moonshotId: aTag[1].split(":")[1],
                         moonshotEventId: moonshotEventTag?.[1] || "",
                         builderPubkey: event.pubkey,
                         message: event.content,
@@ -64,8 +60,6 @@ export async function fetchInterests(moonshotId: string): Promise<Interest[]> {
                         })),
                         createdAt: event.created_at * 1000,
                     };
-
-                    console.log("Interest parsed:", interest);
                     interests.push(interest);
                 } catch (err) {
                     console.error("Failed to parse interest:", err);

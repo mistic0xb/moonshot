@@ -48,7 +48,7 @@ function MoonshotDetailView({
       try {
         // Fetch interests, upvotes, and versions
         const [fetchedInterests, upvotes, fetchedVersions, fetchedComments] = await Promise.all([
-          fetchInterests(currentMoonshot.id),
+          fetchInterests(currentMoonshot.creatorPubkey, currentMoonshot.id),
           fetchUpvoteCount(currentMoonshot.id, currentMoonshot.creatorPubkey),
           fetchMoonshotVersions(currentMoonshot.id, currentMoonshot.creatorPubkey),
           fetchComments(currentMoonshot.creatorPubkey, currentMoonshot.id),
