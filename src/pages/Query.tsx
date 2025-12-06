@@ -44,7 +44,10 @@ function Query() {
 
         if (fetchedMoonshot) {
           // Load interests for this moonshot
-          const fetchedInterests = await fetchInterests(fetchedMoonshot.creatorPubkey,fetchedMoonshot.id);
+          const fetchedInterests = await fetchInterests(
+            fetchedMoonshot.id,
+            fetchedMoonshot.creatorPubkey
+          );
           setInterests(fetchedInterests);
 
           // Load comments
@@ -123,7 +126,7 @@ function Query() {
       alert("Interest submitted successfully!");
 
       // Refresh interests after submission
-      const updatedInterests = await fetchInterests(moonshot.creatorPubkey,moonshot.id);
+      const updatedInterests = await fetchInterests(moonshot.creatorPubkey, moonshot.id);
       setInterests(updatedInterests);
 
       // Fetch profiles for new interests
