@@ -1,115 +1,77 @@
-import { useNavigate } from 'react-router';
-import { BsLightning, BsRocket, BsPerson } from 'react-icons/bs';
-import { FiZap } from 'react-icons/fi';
+import { useNavigate } from "react-router";
+import { BsRocket, BsShieldCheck, BsCheckCircle } from "react-icons/bs";
+import { FiZap } from "react-icons/fi";
 
 function Home() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-blackish relative overflow-hidden">
-      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 py-20">
-        <div className="max-w-7xl w-full mx-auto">
-          {/* Hero Section */}
-          <div className="text-center mb-28">
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-8 border border-sky-400/20 bg-sky-400/5 backdrop-blur-sm text-sky-300 text-sm uppercase tracking-wider">
-              <BsLightning className="text-sky-300" />
-              <span>Powered by Nostr</span>
+      {/* New hero section */}
+      <section className="relative min-h-screen flex flex-col justify-center items-center pt-32 pb-20 overflow-hidden">
+        {/* Background Gradient Orbs */}
+        <div className="absolute top-20 left-1/4 w-96 h-96 bg-bitcoin/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-nostr/10 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="max-w-5xl mx-auto px-6 text-center z-10">
+          <div>
+            <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 mb-8">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-mono text-gray-300">powered by Nostr &amp; Angor</span>
             </div>
 
-            <h1 className="text-7xl font-bold mb-6 leading-tight">
-              <span className="text-sky-200">Moon</span>
-              <span className="text-white">shot</span>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight">
+              Turn Ambition into <br />
+              <span className="gradient-text">Reality</span>
             </h1>
 
-            <p className="text-2xl text-gray-400 mb-14 leading-relaxed max-w-4xl mx-auto">
-              Turn ambitious ideas into reality.
-              <span className="text-sky-200/90"> Connect visionaries with builders</span>
-              —powered by Bitcoin and Nostr.
+            <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Connect visionaries with builders in a trustless economy. Verify reputation on Nostr.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-16">
               <button
-                onClick={() => navigate('/create')}
-                className="group w-full sm:w-auto bg-sky-200 hover:bg-sky-400 text-black font-bold py-6 px-10 text-xl uppercase tracking-wide transition-all duration-300 hover:shadow-[0_0_40px_rgba(168,85,247,0.4)] transform hover:scale-[1.02] flex items-center justify-center gap-3 cursor-pointer"
+                onClick={() => navigate("/create")}
+                className="group w-full sm:w-auto bg-bitcoin hover:bg-orange-400 text-black font-semibold py-3 px-8 text-sm md:text-base rounded-full tracking-wide transition-all duration-300 hover:shadow-[0_0_35px_rgba(247,147,26,0.5)] flex items-center justify-center gap-2 cursor-pointer"
               >
-                Initiate Moonshot
+                Start Building
                 <BsRocket className="group-hover:translate-x-1 transition-transform" />
               </button>
 
               <button
-                onClick={() => navigate('/explore')}
-                className="w-full sm:w-auto bg-transparent hover:bg-sky-500/10 text-sky-200 font-bold py-6 px-10 text-xl uppercase tracking-wide border-2 border-sky-400/50 hover:border-sky-400 transition-all duration-300 cursor-pointer"
+                onClick={() => navigate("/explore")}
+                className="w-full sm:w-auto bg-transparent hover:bg-white/5 text-gray-200 font-semibold py-3 px-8 text-sm md:text-base rounded-full border border-white/20 hover:border-white/40 transition-all duration-300 cursor-pointer"
               >
-                Explore Moonshots
+                Explore Ideas
               </button>
             </div>
-          </div>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-            <div className="card-style group hover:border-sky-500/30 transition-all duration-500 p-8 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-br from-sky-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-20 h-20 mb-6 text-5xl text-sky-200 transform group-hover:scale-110 transition-all duration-500">
-                  <FiZap />
-                </div>
-                <h3 className="text-white font-bold mb-4 uppercase text-lg tracking-wider">
-                  Decentralized
-                </h3>
-                <p className="text-gray-500 text-base leading-relaxed">
-                  Built on Nostr protocol for true censorship resistance
-                </p>
+            <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500 font-mono">
+              <div className="flex items-center space-x-2">
+                <FiZap className="w-4 h-4 text-bitcoin" />
+                <span>Lightning Fast</span>
               </div>
-            </div>
-
-            <div className="card-style group hover:border-sky-500/30 transition-all duration-500 p-8 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-br from-sky-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-20 h-20 mb-6 text-5xl text-sky-200 transform group-hover:scale-110 transition-all duration-500">
-                  <BsLightning />
-                </div>
-                <h3 className="text-white font-bold mb-4 uppercase text-lg tracking-wider">
-                  Bitcoin Powered
-                </h3>
-                <p className="text-gray-500 text-base leading-relaxed">
-                  Seamless Lightning payments for project funding
-                </p>
+              <div className="flex items-center space-x-2">
+                <BsShieldCheck className="w-4 h-4 text-purple-500" />
+                <span>Censorship Resistant</span>
               </div>
-            </div>
-
-            <div className="card-style group hover:border-sky-500/30 transition-all duration-500 p-8 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-br from-sky-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-20 h-20 mb-6 text-5xl text-sky-200 transform group-hover:scale-110 transition-all duration-500">
-                  <BsPerson />
-                </div>
-                <h3 className="text-white font-bold mb-4 uppercase text-lg tracking-wider">
-                  Direct Connection
-                </h3>
-                <p className="text-gray-500 text-base leading-relaxed">
-                  Connect creators and builders without intermediaries
-                </p>
+              <div className="flex items-center space-x-2">
+                <BsCheckCircle className="w-4 h-4 text-green-500" />
+                <span>Peer-to-Peer</span>
               </div>
-            </div>
-          </div>
-
-          {/* Use Cases */}
-          <div className="text-center">
-            <h2 className="text-4xl font-bold text-white mb-8">Perfect For</h2>
-            <div className="flex flex-wrap justify-center gap-4">
-              {['Open Source', 'Apps & Tools', 'Research', 'Bitcoin Projects', 'Nostr Clients', 'Creative Works'].map(useCase => (
-                <div
-                  key={useCase}
-                  className="px-8 py-4 bg-card-bg border border-border-sky hover:border-sky-400/30 text-gray-200 hover:text-sky-400 text-lg transition-all duration-300 cursor-default"
-                >
-                  {useCase}
-                </div>
-              ))}
             </div>
           </div>
         </div>
-      </div>
+
+        {/* Abstract Grid Floor */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-dark to-transparent z-20 pointer-events-none" />
+        <div
+          className="absolute inset-0 grid-bg opacity-20 z-0 pointer-events-none"
+          style={{
+            transform: "perspective(1000px) rotateX(60deg) translateY(200px) scale(2)",
+          }}
+        />
+      </section>
     </div>
   );
 }

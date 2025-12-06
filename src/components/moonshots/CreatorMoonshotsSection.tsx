@@ -18,36 +18,37 @@ function CreatorMoonshotsSection({ moonshots, loading }: CreatorMoonshotsSection
   }
 
   return (
-    <div className="mb-16">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-bold text-white">
-          Your <span className="text-sky-400">Moonshots</span>
-        </h2>
+    <section className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-semibold text-white">Your Moonshots</h2>
+          <p className="text-xs text-gray-500">Drafts and live projects you have published.</p>
+        </div>
         <button
           onClick={() => (window.location.href = "/create")}
-          className="bg-sky-600 hover:bg-sky-500 text-white px-6 py-3 font-semibold uppercase transition-colors rounded"
+          className="inline-flex items-center justify-center rounded-full bg-bitcoin px-5 py-2 text-xs sm:text-sm font-semibold uppercase tracking-wide text-black hover:bg-orange-400 transition-colors"
         >
           + Create Moonshot
         </button>
       </div>
 
       {loading ? (
-        <div className="text-center py-12">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-full border-4 border-sky-600/20 border-t-sky-600 animate-spin"></div>
-          <p className="text-sky-400">Loading your moonshots...</p>
+        <div className="py-10 text-center">
+          <div className="mx-auto mb-3 h-8 w-8 rounded-full border-2 border-white/20 border-t-bitcoin animate-spin" />
+          <p className="text-xs text-gray-400">Loading your moonshots…</p>
         </div>
       ) : moonshots.length === 0 ? (
-        <div className="card-style p-12 text-center">
-          <p className="text-gray-400 text-lg mb-4">You haven't created any moonshots yet</p>
+        <div className="rounded-2xl border border-dashed border-white/10 bg-black/40 px-6 py-10 text-center">
+          <p className="mb-3 text-sm text-gray-300">You have not created any moonshots yet.</p>
           <button
             onClick={() => (window.location.href = "/create")}
-            className="bg-sky-600 hover:bg-sky-500 text-white px-8 py-3 font-semibold uppercase transition-colors rounded"
+            className="inline-flex items-center justify-center rounded-full bg-bitcoin px-6 py-2 text-xs sm:text-sm font-semibold uppercase tracking-wide text-black hover:bg-orange-400 transition-colors"
           >
             Create Your First Moonshot
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {moonshots.map(moonshot => (
             <MoonshotCard
               key={moonshot.id}
@@ -57,7 +58,7 @@ function CreatorMoonshotsSection({ moonshots, loading }: CreatorMoonshotsSection
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

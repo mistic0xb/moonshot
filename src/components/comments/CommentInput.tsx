@@ -80,7 +80,7 @@ function CommentInput({
   const displayAmount = useCustom && customAmount ? parseInt(customAmount) : chipIn;
 
   return (
-    <div className="bg-sky-900/10 border border-sky-500/30 rounded-lg p-4">
+    <div className="rounded-2xl border border-white/10 bg-card/70 p-4 sm:p-5">
       {/* Comment Textarea */}
       <textarea
         value={content}
@@ -88,39 +88,46 @@ function CommentInput({
         placeholder={placeholder}
         maxLength={maxLength}
         rows={3}
-        className="w-full bg-blackish border border-sky-500/30 rounded px-3 py-2 text-gray-200 text-sm placeholder-gray-500 focus:outline-none focus:border-sky-500 resize-none"
+        className="w-full resize-none rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin focus:ring-0"
       />
 
-      <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+      <div className="mt-1 flex items-center justify-between text-[11px] text-gray-500">
         <span>
           {content.length}/{maxLength}
         </span>
+        {displayAmount > 0 && (
+          <span className="rounded-full bg-bitcoin/10 px-2 py-0.5 text-bitcoin">
+            {displayAmount.toLocaleString()} sats
+          </span>
+        )}
       </div>
 
       {/* Chip-In Section */}
-      <div className="mt-4 border-t border-sky-500/20 pt-4">
+      <div className="mt-3 border-t border-white/10 pt-3">
         <button
           onClick={() => setShowChipIn(!showChipIn)}
-          className="flex items-center gap-2 text-sky-400 hover:text-sky-300 text-sm font-medium transition-colors mb-3"
+          className="mb-2 inline-flex items-center gap-2 text-xs font-medium text-bitcoin hover:text-orange-300 transition-colors cursor-pointer"
         >
-          <BsCurrencyBitcoin className="text-base" />
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-bitcoin/15">
+            <BsCurrencyBitcoin className="text-[13px]" />
+          </span>
           {displayAmount > 0
             ? `Chipping in ${displayAmount.toLocaleString()} sats`
-            : "Add Chip-In (Optional)"}
+            : "Add Chip-In (optional)"}
         </button>
 
         {showChipIn && (
           <div className="space-y-3">
-            {/* Preset Buttons */}
+            {/* Presets */}
             <div className="grid grid-cols-4 gap-2">
               {CHIP_IN_PRESETS.map(amount => (
                 <button
                   key={amount}
                   onClick={() => handlePresetClick(amount)}
-                  className={`px-3 py-2 rounded text-xs font-semibold transition-colors ${
+                  className={`rounded-full px-2.5 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer ${
                     chipIn === amount && !useCustom
-                      ? "bg-amber-500 text-black"
-                      : "bg-sky-900/20 border border-sky-500/30 text-sky-300 hover:bg-sky-900/30"
+                      ? "bg-bitcoin text-black shadow-[0_0_18px_rgba(247,147,26,0.5)]"
+                      : "border border-white/10 bg-white/5 text-gray-200 hover:border-bitcoin/60 hover:text-bitcoin"
                   }`}
                 >
                   {amount >= 1000 ? `${amount / 1000}k` : amount}
@@ -128,38 +135,37 @@ function CommentInput({
               ))}
             </div>
 
-            {/* Custom Input */}
+            {/* Custom input */}
             <div>
-              <label className="block text-gray-400 text-xs mb-1">Custom Amount</label>
+              <label className="mb-1 block text-[11px] text-gray-400">Custom amount (sats)</label>
               <input
                 type="text"
                 value={customAmount}
                 onChange={e => handleCustomInput(e.target.value)}
                 placeholder="Enter custom amount"
-                className={`w-full bg-blackish border rounded px-3 py-2 text-gray-200 text-sm placeholder-gray-500 focus:outline-none ${
+                className={`w-full rounded-xl border px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none ${
                   useCustom
-                    ? "border-amber-500 focus:border-amber-400"
-                    : "border-sky-500/30 focus:border-sky-500"
-                }`}
+                    ? "border-bitcoin focus:border-orange-300"
+                    : "border-white/10 focus:border-bitcoin"
+                } bg-black/40`}
               />
             </div>
 
-            {/* Info Text */}
-            <p className="text-gray-500 text-xs">
-              Show your support by indicating how much you're willing to contribute to this
+            <p className="text-[11px] text-gray-500">
+              Show your support by indicating how much you&apos;re willing to contribute to this
               moonshot.
             </p>
           </div>
         )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 mt-4">
+      {/* Actions */}
+      <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {onCancel && (
           <button
             onClick={onCancel}
             disabled={isSubmitting}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold rounded transition-colors disabled:opacity-50"
+            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-gray-200 hover:border-white/30 hover:bg-white/10 transition-colors disabled:opacity-50 cursor-pointer"
           >
             Cancel
           </button>
@@ -167,7 +173,7 @@ function CommentInput({
         <button
           onClick={handleSubmit}
           disabled={!content.trim() || isSubmitting}
-          className="flex-1 px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-sm font-semibold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 rounded-full bg-bitcoin px-4 py-2 text-xs font-semibold text-black hover:bg-orange-400 transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none cursor-pointer"
         >
           {isSubmitting ? "Posting..." : parentCommentId ? "Reply" : "Comment"}
         </button>
