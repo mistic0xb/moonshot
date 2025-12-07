@@ -117,7 +117,7 @@ function Query() {
       setShowInterestDialog(false);
       showToast("Interest submitted successfullY!", "success");
 
-      const updatedInterests = await fetchInterests(moonshot.creatorPubkey, moonshot.id);
+      const updatedInterests = await fetchInterests(moonshot.id, moonshot.creatorPubkey);
       setInterests(updatedInterests);
 
       const profilePromises = updatedInterests.map(interest =>

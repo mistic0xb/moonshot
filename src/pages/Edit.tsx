@@ -47,7 +47,7 @@ function Edit() {
       <div className="min-h-screen bg-dark flex items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-3 h-10 w-10 rounded-full border-2 border-white/20 border-t-bitcoin animate-spin" />
-          <p className="text-xs text-gray-400">Loading moonshot…</p>
+          <p className="text-xs text-gray-400">Loading moonshot...</p>
         </div>
       </div>
     );
