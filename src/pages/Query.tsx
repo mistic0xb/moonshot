@@ -17,10 +17,12 @@ import {
   fetchMoonshotVersions,
   fetchComments,
 } from "../utils/nostr";
+import { useToast } from "../context/ToastContext";
 
 function Query() {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated, userPubkey } = useAuth();
+
   const [moonshot, setMoonshot] = useState<Moonshot | null>(null);
   const [interests, setInterests] = useState<Interest[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -30,6 +32,8 @@ function Query() {
   const [loadingInterests, setLoadingInterests] = useState(true);
   const [loadingVersions, setLoadingVersions] = useState(true);
   const [showInterestDialog, setShowInterestDialog] = useState(false);
+
+  const { showToast } = useToast();
 
   useEffect(() => {
     const loadMoonshot = async () => {
@@ -43,21 +47,14 @@ function Query() {
         setMoonshot(fetchedMoonshot);
 
         if (fetchedMoonshot) {
-          // Load interests for this moonshot
-          const fetchedInterests = await fetchInterests(
-            fetchedMoonshot.id,
-            fetchedMoonshot.creatorPubkey
-          );
-          setInterests(fetchedInterests);
+          const [fetchedInterests, fetchedComments] = await Promise.all([
+            fetchInterests(fetchedMoonshot.id, fetchedMoonshot.creatorPubkey),
+            fetchComments(fetchedMoonshot.creatorPubkey, fetchedMoonshot.id),
+          ]);
 
-          // Load comments
-          const fetchedComments = await fetchComments(
-            fetchedMoonshot.creatorPubkey,
-            fetchedMoonshot.id
-          );
+          setInterests(fetchedInterests);
           setComments(fetchedComments);
 
-          // Fetch profiles for all interested builders
           const profilePromises = fetchedInterests.map(interest =>
             fetchUserProfile(interest.builderPubkey)
           );
@@ -71,7 +68,6 @@ function Query() {
           });
           setUserProfiles(profileMap);
 
-          // Load version history
           setLoadingVersions(true);
           const fetchedVersions = await fetchMoonshotVersions(
             fetchedMoonshot.id,
@@ -94,15 +90,11 @@ function Query() {
   const handleInterestClick = () => {
     if (!isAuthenticated) {
       document.dispatchEvent(new CustomEvent("nlLaunch", { detail: "welcome-login" }));
-      return;
+    } else if (userPubkey && interests.some(i => i.builderPubkey === userPubkey)) {
+      showToast("You have already shown interest.", "info");
+    } else {
+      setShowInterestDialog(true);
     }
-    // block duplicate submissions
-    if (userPubkey && interests.some(i => i.builderPubkey === userPubkey)) {
-      alert("You have already shown interest.");
-      return;
-    }
-
-    setShowInterestDialog(true);
   };
 
   async function handleInterestSubmit(
@@ -123,13 +115,11 @@ function Query() {
       );
 
       setShowInterestDialog(false);
-      alert("Interest submitted successfully!");
+      showToast("Interest submitted successfullY!", "success");
 
-      // Refresh interests after submission
       const updatedInterests = await fetchInterests(moonshot.creatorPubkey, moonshot.id);
       setInterests(updatedInterests);
 
-      // Fetch profiles for new interests
       const profilePromises = updatedInterests.map(interest =>
         fetchUserProfile(interest.builderPubkey)
       );
@@ -144,27 +134,51 @@ function Query() {
       setUserProfiles(profileMap);
     } catch (error) {
       console.error("Failed to submit interest:", error);
-      alert("Failed to submit interest. Please try again.");
+      showToast("Failed to submit interest. Please try again");
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-blackish flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-sky-600/20 border-t-sky-500 animate-spin"></div>
-          <p className="text-sky-300 text-lg">Loading moonshot...</p>
+  const SkeletonLayout = () => (
+    <div className="min-h-screen bg-dark pt-28 pb-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left skeleton */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-card/60 border border-white/5 rounded-2xl p-6 animate-pulse">
+              <div className="h-7 w-1/2 bg-white/10 rounded mb-4" />
+              <div className="h-4 w-1/4 bg-white/5 rounded mb-2" />
+              <div className="h-4 w-full bg-white/5 rounded mb-2" />
+              <div className="h-4 w-5/6 bg-white/5 rounded mb-2" />
+              <div className="h-4 w-2/3 bg-white/5 rounded mb-4" />
+              <div className="h-10 w-full bg-white/5 rounded" />
+            </div>
+            <div className="bg-card/40 border border-white/5 rounded-2xl h-56 animate-pulse" />
+          </div>
+
+          {/* Right skeleton */}
+          <div className="bg-card/60 border border-white/5 rounded-2xl p-6 animate-pulse">
+            <div className="h-5 w-40 bg-white/10 rounded mb-6" />
+            <div className="space-y-4">
+              <div className="h-12 bg-white/5 rounded" />
+              <div className="h-12 bg-white/5 rounded" />
+              <div className="h-12 bg-white/5 rounded" />
+            </div>
+          </div>
         </div>
       </div>
-    );
+    </div>
+  );
+
+  if (loading) {
+    return <SkeletonLayout />;
   }
 
   if (!moonshot) {
     return (
-      <div className="min-h-screen bg-blackish flex items-center justify-center">
+      <div className="min-h-screen bg-dark flex items-center justify-center px-4">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Moonshot Not Found</h2>
-          <p className="text-gray-400">The moonshot you're looking for doesn't exist.</p>
+          <p className="text-gray-400">The moonshot you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );
@@ -172,25 +186,28 @@ function Query() {
 
   return (
     <>
-      <div className="min-h-screen bg-blackish py-12">
-        <div className="max-w-8xl mx-auto px-32">
+      <div className="min-h-screen bg-dark pt-28 pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Moonshot Details */}
-            <div className="lg:col-span-2">
-              <div className="card-style p-8 mb-6">
-                <div className="flex justify-between items-start mb-6">
+            {/* Left Column */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-card/70 border border-white/5 rounded-2xl p-6 sm:p-8">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h1 className="text-4xl font-bold text-white">{moonshot.title}</h1>
+                    <div className="flex items-center gap-2 mb-3">
+                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                        {moonshot.title}
+                      </h1>
                       {versions.length > 0 && (
-                        <span className="flex items-center gap-1 px-2 py-1 bg-sky-900/30 border border-sky-500/30 text-sky-300 text-xs rounded">
+                        <span className="flex items-center gap-1 px-2 py-1 bg-white/5 border border-white/10 text-gray-300 text-xs rounded-full">
                           <BsPencilSquare className="text-xs" />
                           Edited
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex items-center gap-2 self-start">
                     <ShareButton moonshot={moonshot} />
                     <UpvoteButton moonshotId={moonshot.id} creatorPubkey={moonshot.creatorPubkey} />
                   </div>
@@ -202,7 +219,7 @@ function Query() {
                     {moonshot.topics.map((topic, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-sky-900/20 border border-sky-500/30 text-sky-300 text-sm rounded-full"
+                        className="px-3 py-1 bg-white/5 border border-white/10 text-gray-200 text-xs rounded-full"
                       >
                         #{topic}
                       </span>
@@ -210,20 +227,21 @@ function Query() {
                   </div>
                 )}
 
-                <div className="flex gap-4 mb-6 flex-wrap">
-                  <span className="px-4 py-2 bg-sky-900/20 border border-sky-500/30 text-sky-300 text-sm font-semibold rounded">
+                {/* Meta */}
+                <div className="flex flex-wrap gap-3 mb-6 text-sm">
+                  <span className="px-4 py-2 bg-white/5 border border-white/10 text-gray-200 font-semibold rounded-full">
                     {moonshot.budget} sats
                   </span>
-                  <span className="px-4 py-2 bg-sky-900/20 border border-sky-500/30 text-sky-300 text-sm font-semibold rounded">
+                  <span className="px-4 py-2 bg-white/5 border border-white/10 text-gray-200 font-semibold rounded-full">
                     {moonshot.timeline} months
                   </span>
                   <span
-                    className={`px-4 py-2 border text-sm font-semibold rounded ${
+                    className={`px-4 py-2 rounded-full border text-sm font-semibold ${
                       moonshot.status === "open"
-                        ? "bg-green-900/20 border-green-500/30 text-green-300"
+                        ? "bg-green-500/10 border-green-500/40 text-green-300"
                         : moonshot.status === "closed"
-                        ? "bg-red-900/20 border-red-500/30 text-red-300"
-                        : "bg-gray-800 border-gray-600 text-gray-400"
+                        ? "bg-red-500/10 border-red-500/40 text-red-300"
+                        : "bg-white/5 border-white/10 text-gray-300"
                     }`}
                   >
                     {moonshot.status}
@@ -231,19 +249,28 @@ function Query() {
                 </div>
 
                 {/* Content */}
-                <div className="mb-8">
+                <div className="mb-8 prose prose-invert max-w-none">
                   <RichTextViewer content={moonshot.content} />
                 </div>
 
                 <button
                   onClick={handleInterestClick}
-                  className="w-full bg-sky-300 hover:bg-sky-400 text-sky-950 font-bold py-4 text-lg uppercase tracking-wide transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] cursor-pointer rounded"
+                  disabled={!!userPubkey && interests.some(i => i.builderPubkey === userPubkey)}
+                  className={`w-full  font-semibold py-3 sm:py-4 text-sm sm:text-base uppercase tracking-wide rounded-full transition-all duration-300  ${
+                    userPubkey && interests.some(i => i.builderPubkey === userPubkey)
+                      ? "border-bitcoin border text-bitcoin disabled:cursor-not-allowed"
+                      : "bg-bitcoin hover:bg-orange-400 text-black cursor-pointer hover:shadow-[0_0_18px_rgba(247,147,26,0.4)] "
+                  }`}
                 >
-                  {isAuthenticated ? "I'm Interested" : "Login to Show Interest"}
+                  {isAuthenticated
+                    ? userPubkey && interests.some(i => i.builderPubkey === userPubkey)
+                      ? "Already Interested"
+                      : "I'm interested"
+                    : "Login to Show Interest"}
                 </button>
               </div>
 
-              {/* Comment Section */}
+              {/* Comments */}
               <CommentSection
                 moonshotId={moonshot.id}
                 moonshotCreatorPubkey={moonshot.creatorPubkey}
@@ -252,71 +279,73 @@ function Query() {
               />
             </div>
 
-            {/* Right Column - Interested Builders */}
+            {/* Right Column */}
             <div className="lg:col-span-1">
-              <div className="card-style p-6 sticky top-6">
-                <h2 className="text-2xl font-bold text-white mb-4">
-                  Interested Builders ({interests.length})
-                </h2>
+              <div className="bg-card/70 border border-white/5 rounded-2xl p-6 space-y-6 lg:sticky lg:top-24">
+                <div className=" scrollbar-thin">
+                  <h2 className="text-lg sm:text-xl font-bold text-white mb-4">
+                    Interested Builders ({interests.length})
+                  </h2>
 
-                {loadingInterests ? (
-                  <div className="text-center py-8">
-                    <div className="w-8 h-8 mx-auto mb-2 rounded-full border-2 border-sky-600/20 border-t-sky-500 animate-spin"></div>
-                    <p className="text-gray-400 text-sm">Loading builders...</p>
-                  </div>
-                ) : interests.length === 0 ? (
-                  <div className="text-center py-8 border border-sky-500/30 rounded">
-                    <p className="text-gray-400">No builders yet</p>
-                    <p className="text-gray-500 text-sm mt-1">Be the first to show interest!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {interests.map(interest => {
-                      const profile = userProfiles.get(interest.builderPubkey);
-                      return (
-                        <div
-                          key={interest.id}
-                          className="bg-sky-900/10 border border-sky-500/20 p-4 rounded"
-                        >
-                          <div className="flex items-center gap-3 mb-2">
-                            {profile?.picture ? (
-                              <img
-                                src={profile.picture}
-                                alt={profile.name || "Builder"}
-                                className="w-10 h-10 rounded-full border border-sky-500/30"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-sky-900/50 border border-sky-500/30 flex items-center justify-center">
-                                <span className="text-sky-300 text-sm font-bold">
-                                  {interest.builderPubkey.slice(0, 2)}
-                                </span>
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sky-300 font-medium truncate">
-                                {profile?.name || `${interest.builderPubkey.slice(0, 8)}...`}
-                              </p>
-                              {interest.github && (
-                                <p className="text-gray-400 text-xs truncate">
-                                  GitHub: {interest.github}
-                                </p>
+                  {loadingInterests ? (
+                    <div className="space-y-3 animate-pulse">
+                      <div className="h-12 bg-white/5 rounded-xl" />
+                      <div className="h-12 bg-white/5 rounded-xl" />
+                      <div className="h-12 bg-white/5 rounded-xl" />
+                    </div>
+                  ) : interests.length === 0 ? (
+                    <div className="text-center py-6 border border-dashed border-white/10 rounded-xl">
+                      <p className="text-gray-400 mb-1">No builders yet.</p>
+                      <p className="text-gray-500 text-xs">Be the first to show interest.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
+                      {interests.map(interest => {
+                        const profile = userProfiles.get(interest.builderPubkey);
+                        return (
+                          <div
+                            key={interest.id}
+                            className="bg-white/5 border border-white/10 p-4 rounded-xl"
+                          >
+                            <div className="flex items-center gap-3 mb-2">
+                              {profile?.picture ? (
+                                <img
+                                  src={profile.picture}
+                                  alt={profile.name || "Builder"}
+                                  className="w-9 h-9 rounded-full border border-white/10 object-cover"
+                                />
+                              ) : (
+                                <div className="w-9 h-9 rounded-full bg-linear-to-tr from-bitcoin to-nostr flex items-center justify-center text-xs font-bold text-white">
+                                  {interest.builderPubkey.slice(0, 2).toUpperCase()}
+                                </div>
                               )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-gray-200 text-sm font-medium truncate">
+                                  {profile?.name || `${interest.builderPubkey.slice(0, 8)}...`}
+                                </p>
+                                {interest.github && (
+                                  <p className="text-gray-500 text-xs truncate">
+                                    GitHub: {interest.github}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          <p className="text-gray-300 text-sm line-clamp-3 mb-2">
-                            {interest.message}
-                          </p>
-                          {interest.proofOfWorkLinks.length > 0 && (
-                            <p className="text-gray-500 text-xs">
-                              +{interest.proofOfWorkLinks.length} proof(s) of work
+                            <p className="text-gray-300 text-xs sm:text-sm line-clamp-3 mb-1">
+                              {interest.message}
                             </p>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {/* Version History */}
+                            {interest.proofOfWorkLinks.length > 0 && (
+                              <p className="text-gray-500 text-xs">
+                                +{interest.proofOfWorkLinks.length} proof
+                                {interest.proofOfWorkLinks.length > 1 && "s"} of work
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
                 <MoonshotVersionHistory versions={versions} loading={loadingVersions} />
               </div>
             </div>

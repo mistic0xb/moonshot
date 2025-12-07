@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { BsPlus, BsX } from "react-icons/bs";
+import { BsPlus } from "react-icons/bs";
 import type { Moonshot } from "../../types/types";
+import { useToast } from "../../context/ToastContext";
 
 interface EditMoonshotDialogProps {
   moonshot: Moonshot;
@@ -24,6 +25,7 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
   const [status, setStatus] = useState(moonshot.status);
   const [newTopic, setNewTopic] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   const handleAddTopic = () => {
     if (newTopic.trim() && !topics.includes(newTopic.trim())) {
@@ -38,7 +40,7 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
 
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim() || !budget.trim() || !timeline.trim()) {
-      alert("Please fill in all required fields");
+      showToast("Please fill in all required fields", "info");
       return;
     }
 
@@ -65,23 +67,23 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="card-style max-w-2xl w-full p-8 relative my-8 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 py-8 overflow-y-auto">
+      <div className="relative my-8 w-full max-w-xl rounded-2xl border border-white/10 bg-linear-to-br from-dark via-card to-card/95 p-5 sm:p-6 shadow-[0_0_40px_rgba(0,0,0,0.9)] max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           disabled={submitting}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl font-bold disabled:opacity-50"
+          className="absolute right-4 top-4 rounded-full bg-white/5 px-2 py-1 text-gray-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50 cursor-pointer"
         >
           ×
         </button>
 
-        <h2 className="text-3xl font-bold text-white mb-2">Edit Moonshot</h2>
-        <p className="text-gray-400 mb-6">Update your project details</p>
+        <h2 className="mb-1 text-xl sm:text-2xl font-bold text-white">Edit Moonshot</h2>
+        <p className="mb-5 text-xs text-gray-400">Update your project details and status.</p>
 
-        <div className="space-y-6">
+        <div className="space-y-5 text-sm">
           {/* Title */}
           <div>
-            <label className="block text-sky-200 font-semibold mb-2 text-sm uppercase tracking-wide">
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-300">
               Project Title *
             </label>
             <input
@@ -89,29 +91,28 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="Enter project title"
-              className="w-full bg-blackish border border-sky-500/30 text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded"
+              className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin"
             />
           </div>
 
-          {/* Content */}
+          {/* Description */}
           <div>
-            <label className="block text-sky-200 font-semibold mb-2 text-sm uppercase tracking-wide">
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-300">
               Project Description *
             </label>
             <textarea
               value={content}
               onChange={e => setContent(e.target.value)}
-              placeholder="Describe your project in detail..."
-              rows={8}
-              className="w-full bg-blackish border border-sky-500/30 text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded resize-vertical"
+              placeholder="Describe your project in detail…"
+              rows={5}
+              className="w-full resize-vertical rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin"
             />
           </div>
 
-          {/* Budget & Timeline */}
-          {/* Budget & Timeline */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Budget / timeline / status */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
-              <label className="block text-sky-200 font-semibold mb-2 text-sm uppercase tracking-wide">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-300">
                 Budget (sats) *
               </label>
               <input
@@ -119,11 +120,11 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
                 value={budget}
                 onChange={e => setBudget(e.target.value)}
                 placeholder="50000"
-                className="w-full bg-blackish border border-sky-500/30 text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded"
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin"
               />
             </div>
             <div>
-              <label className="block text-sky-200 font-semibold mb-2 text-sm uppercase tracking-wide">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-300">
                 Timeline (months) *
               </label>
               <input
@@ -131,17 +132,17 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
                 value={timeline}
                 onChange={e => setTimeline(e.target.value)}
                 placeholder="3"
-                className="w-full bg-blackish border border-sky-500/30 text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded"
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin"
               />
             </div>
             <div>
-              <label className="block text-sky-200 font-semibold mb-2 text-sm uppercase tracking-wide">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-300">
                 Status *
               </label>
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value)}
-                className="w-full bg-blackish border border-sky-500/30 text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded"
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-bitcoin"
               >
                 <option value="open">Open</option>
                 <option value="in-progress">In Progress</option>
@@ -149,53 +150,46 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
               </select>
             </div>
           </div>
+
           {/* Topics */}
           <div>
-            <label className="block text-sky-200 font-semibold mb-2 text-sm uppercase tracking-wide">
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-300">
               Topics
             </label>
-            <div className="space-y-2 mb-4">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newTopic}
-                  onChange={e => setNewTopic(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Add a topic (e.g., nostr, lightning)"
-                  className="flex-1 bg-blackish border border-sky-500/30 text-white px-4 py-2 focus:border-sky-400 focus:outline-none transition-colors rounded"
-                />
-                <button
-                  onClick={handleAddTopic}
-                  className="bg-sky-700 hover:bg-sky-600 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors"
-                >
-                  <BsPlus className="text-xl" />
-                  Add
-                </button>
-              </div>
+            <div className="mb-2 flex gap-2">
+              <input
+                type="text"
+                value={newTopic}
+                onChange={e => setNewTopic(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Add a topic (e.g., nostr, lightning)"
+                className="flex-1 rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin"
+              />
+              <button
+                onClick={handleAddTopic}
+                className="inline-flex items-center gap-1.5 rounded-full bg-bitcoin px-3.5 py-2 text-xs font-semibold text-black hover:bg-orange-400 transition-colors cursor-pointer"
+              >
+                <BsPlus className="text-sm" />
+                Add
+              </button>
             </div>
 
-            {/* Display Topics */}
             {topics.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {topics.map((topic, index) => (
                   <div
                     key={index}
-                    className="bg-sky-900/20 border border-sky-500/30 px-3 py-1 rounded-full flex items-center gap-2 group"
+                    onClick={() => handleRemoveTopic(index)}
+                    className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] text-gray-200 cursor-pointer hover:border-red-400/70 hover:bg-red-500/10 transition-colors"
                   >
-                    <span className="text-sky-300 text-sm">#{topic}</span>
-                    <button
-                      onClick={() => handleRemoveTopic(index)}
-                      className="text-red-400 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <BsX className="text-lg" />
-                    </button>
+                    <span className="font-medium">#{topic}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             onClick={handleSubmit}
             disabled={
@@ -206,12 +200,12 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
               !timeline.trim() ||
               !status.trim()
             }
-            className="w-full bg-sky-200 hover:bg-sky-300 disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-bold py-4 text-lg uppercase tracking-wide transition-all duration-300 cursor-pointer rounded flex items-center justify-center gap-2"
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-bitcoin px-4 py-2.5 text-xs sm:text-sm font-semibold uppercase tracking-wide text-black transition-colors hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-200 cursor-pointer"
           >
             {submitting ? (
               <>
-                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                Updating...
+                <div className="h-4 w-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+                Updating…
               </>
             ) : (
               "Update Moonshot"

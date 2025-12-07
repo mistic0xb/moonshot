@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import RichTextEditor from "../components/richtext/RichTextEditor";
-import { fetchAllMoonshots , publishMoonshot } from "../utils/nostr";
+import { fetchAllMoonshots, publishMoonshot } from "../utils/nostr";
 
 function CreateMoonshot() {
   const navigate = useNavigate();
@@ -16,21 +16,15 @@ function CreateMoonshot() {
   const [showCustomTimeline, setShowCustomTimeline] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  // Check auth on mount and after auth changes
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!title.trim()) {
-      newErrors.title = "Project title is required";
-    }
-
-    if (!content.trim()) {
-      newErrors.content = "Project description is required";
-    }
+    if (!title.trim()) newErrors.title = "Project title is required";
+    if (!content.trim()) newErrors.content = "Project description is required";
 
     if (!budget.trim()) {
       newErrors.budget = "Budget is required";
@@ -53,20 +47,14 @@ function CreateMoonshot() {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
-    // Check if user is authenticated
     if (!isAuthenticated) {
-      // Launch login dialog
       document.dispatchEvent(new CustomEvent("nlLaunch", { detail: "login" }));
 
-      // Wait for authentication, then retry
       const handleAuth = (e: any) => {
         if (e.detail.type === "login" || e.detail.type === "signup") {
           document.removeEventListener("nlAuth", handleAuth);
-          // Retry submission after successful login
           setTimeout(() => handleSubmit(), 500);
         }
       };
@@ -74,32 +62,32 @@ function CreateMoonshot() {
       return;
     }
 
-    // TODO: Show payment modal for 1k sats
-    // After payment, publish moonshot event
     const moonshotId = await publishMoonshot(title, content, budget, timeline, selectedTags);
     const allMoonshots = await fetchAllMoonshots();
     console.log(allMoonshots);
     navigate(`/moonshot/${moonshotId}`);
   };
 
-  const formatBudget = (value: string) => {
-    return parseInt(value).toLocaleString() + " sats";
-  };
+  const formatBudget = (value: string) => parseInt(value).toLocaleString() + " sats";
 
   return (
-    <div className="min-h-screen bg-blackish py-12">
-      <div className="max-w-6xl mx-auto px-4">
-        <h1 className="text-5xl font-bold text-white mb-2 text-center">
-          Create Your <span className="text-sky-400">Moonshot</span>
-        </h1>
-        <p className="text-gray-400 text-center mb-12">
-          Share your ambitious project idea with the Nostr builder community
-        </p>
+    <div className="min-h-screen bg-dark pt-28 pb-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-10 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
+            Create Your <span className="gradient-text">Moonshot</span>
+          </h1>
+          <p className="text-sm sm:text-base text-gray-400 max-w-xl mx-auto">
+            Share your ambitious project idea with the Nostr builder community.
+          </p>
+        </div>
 
-        <div className="card-style p-8 space-y-6">
+        {/* Form card */}
+        <div className="rounded-2xl border border-white/10 bg-card/80 p-5 sm:p-7 space-y-7 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
           {/* Title */}
           <div>
-            <label className="block text-sky-300 font-semibold mb-2 text-sm uppercase tracking-wide">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-300 mb-2">
               Project Title *
             </label>
             <input
@@ -107,32 +95,32 @@ function CreateMoonshot() {
               value={title}
               onChange={e => {
                 setTitle(e.target.value);
-                if (errors.title) setErrors({...errors, title: ""});
+                if (errors.title) setErrors({ ...errors, title: "" });
               }}
-              placeholder="e.g., Zapit: live board messaging powered by nostr & lightning"
-              className={`w-full bg-blackish border ${
-                errors.title ? "border-red-500" : "border-sky-500/30"
-              } text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded`}
+              placeholder="e.g., Zapit: live board messaging powered by Nostr & Lightning"
+              className={`w-full rounded-xl border px-4 py-2.5 text-sm text-gray-100 placeholder:text-gray-500 bg-black/40 focus:outline-none focus:border-bitcoin ${
+                errors.title ? "border-red-500" : "border-white/10"
+              }`}
             />
-            {errors.title && <p className="text-red-400 text-sm mt-1">{errors.title}</p>}
+            {errors.title && <p className="mt-1 text-xs text-red-400">{errors.title}</p>}
           </div>
 
-          {/* Budget & Timeline */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Budget & timeline */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             {/* Budget */}
             <div>
-              <label className="block text-gray-300/90 font-semibold mb-2 text-sm uppercase tracking-wide">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-300 mb-2">
                 Budget (sats) *
               </label>
 
               {!showCustomBudget ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sky-300 font-medium">{formatBudget(budget)}</span>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-bitcoin">{formatBudget(budget)}</span>
                     <button
                       type="button"
                       onClick={() => setShowCustomBudget(true)}
-                      className="text-sky-400 hover:text-sky-300 text-sm underline"
+                      className="text-gray-400 hover:text-gray-200 underline"
                     >
                       Custom
                     </button>
@@ -146,12 +134,12 @@ function CreateMoonshot() {
                     value={budget}
                     onChange={e => {
                       setBudget(e.target.value);
-                      if (errors.budget) setErrors({...errors, budget: ""});
+                      if (errors.budget) setErrors({ ...errors, budget: "" });
                     }}
-                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    className="w-full h-2 rounded-full bg-black/40 accent-bitcoin slider"
                   />
 
-                  <div className="flex justify-between text-xs text-gray-400">
+                  <div className="flex justify-between text-[11px] text-gray-500">
                     <span>1K</span>
                     <span>25K</span>
                     <span>50K</span>
@@ -166,43 +154,43 @@ function CreateMoonshot() {
                     value={budget}
                     onChange={e => {
                       setBudget(e.target.value);
-                      if (errors.budget) setErrors({...errors, budget: ""});
+                      if (errors.budget) setErrors({ ...errors, budget: "" });
                     }}
                     min="1000"
                     max="1000000"
                     placeholder="Enter custom amount"
-                    className={`flex-1 bg-blackish border ${
-                      errors.budget ? "border-red-500" : "border-sky-500/30"
-                    } text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded`}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm text-gray-100 bg-black/40 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin ${
+                      errors.budget ? "border-red-500" : "border-white/10"
+                    }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowCustomBudget(false)}
-                    className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+                    className="rounded-xl bg-white/5 px-4 py-2.5 text-xs font-semibold text-gray-200 hover:bg-white/10 transition-colors"
                   >
                     Back
                   </button>
                 </div>
               )}
-              {errors.budget && <p className="text-red-400 text-sm mt-1">{errors.budget}</p>}
+              {errors.budget && <p className="mt-1 text-xs text-red-400">{errors.budget}</p>}
             </div>
 
             {/* Timeline */}
             <div>
-              <label className="block text-gray-300/90 font-semibold mb-2 text-sm uppercase tracking-wide">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-300 mb-2">
                 Timeline (months) *
               </label>
 
               {!showCustomTimeline ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sky-300 font-medium">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-gray-200">
                       {timeline} month{timeline !== "1" ? "s" : ""}
                     </span>
                     <button
                       type="button"
                       onClick={() => setShowCustomTimeline(true)}
-                      className="text-sky-400 hover:text-sky-300 text-sm underline"
+                      className="text-gray-400 hover:text-gray-200 underline"
                     >
                       Custom
                     </button>
@@ -216,12 +204,12 @@ function CreateMoonshot() {
                     value={timeline}
                     onChange={e => {
                       setTimeline(e.target.value);
-                      if (errors.timeline) setErrors({...errors, timeline: ""});
+                      if (errors.timeline) setErrors({ ...errors, timeline: "" });
                     }}
-                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    className="w-full h-2 rounded-full bg-black/40 accent-nostr slider"
                   />
 
-                  <div className="flex justify-between text-xs text-gray-400">
+                  <div className="flex justify-between text-[11px] text-gray-500">
                     <span>1M</span>
                     <span>3M</span>
                     <span>6M</span>
@@ -236,31 +224,31 @@ function CreateMoonshot() {
                     value={timeline}
                     onChange={e => {
                       setTimeline(e.target.value);
-                      if (errors.timeline) setErrors({...errors, timeline: ""});
+                      if (errors.timeline) setErrors({ ...errors, timeline: "" });
                     }}
                     min="1"
                     max="36"
                     placeholder="Months"
-                    className={`flex-1 bg-blackish border ${
-                      errors.timeline ? "border-red-500" : "border-sky-500/30"
-                    } text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded`}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm text-gray-100 bg-black/40 placeholder:text-gray-500 focus:outline-none focus:border-nostr ${
+                      errors.timeline ? "border-red-500" : "border-white/10"
+                    }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowCustomTimeline(false)}
-                    className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+                    className="rounded-xl bg-white/5 px-4 py-2.5 text-xs font-semibold text-gray-200 hover:bg-white/10 transition-colors"
                   >
                     Back
                   </button>
                 </div>
               )}
-              {errors.timeline && <p className="text-red-400 text-sm mt-1">{errors.timeline}</p>}
+              {errors.timeline && <p className="mt-1 text-xs text-red-400">{errors.timeline}</p>}
             </div>
           </div>
 
-          {/* Topic Tags */}
+          {/* Tags */}
           <div>
-            <label className="block text-sky-300 font-semibold mb-2 text-sm uppercase tracking-wide">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-300 mb-2">
               Tags *
             </label>
             <div className="flex flex-wrap gap-2">
@@ -277,52 +265,58 @@ function CreateMoonshot() {
                 "zaps",
                 "relays",
                 "lnurl",
-              ].map(tag => (
-                <button
-                  key={tag}
-                  type="button"
-                  className={`px-3 py-2 rounded-full border transition-colors ${
-                    selectedTags.includes(tag)
-                      ? "bg-sky-500 border-sky-500 text-white"
-                      : "bg-blackish border-sky-500/30 text-sky-300 hover:bg-sky-500/20"
-                  }`}
-                  onClick={() => {
-                    const newTags = selectedTags.includes(tag)
-                      ? selectedTags.filter(t => t !== tag)
-                      : [...selectedTags, tag];
-                    setSelectedTags(newTags);
-                    if (errors.tags && newTags.length >= 2) setErrors({...errors, tags: ""});
-                  }}
-                >
-                  #{tag}
-                </button>
-              ))}
+              ].map(tag => {
+                const active = selectedTags.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                      active
+                        ? "bg-bitcoin text-black shadow-[0_0_8px_rgba(247,147,26,0.5)]"
+                        : "border border-white/15 bg-white/5 text-gray-200 hover:border-bitcoin/60 hover:text-bitcoin"
+                    }`}
+                    onClick={() => {
+                      const newTags = active
+                        ? selectedTags.filter(t => t !== tag)
+                        : [...selectedTags, tag];
+                      setSelectedTags(newTags);
+                      if (errors.tags && newTags.length >= 2) setErrors({ ...errors, tags: "" });
+                    }}
+                  >
+                    #{tag}
+                  </button>
+                );
+              })}
             </div>
-            {errors.tags && <p className="text-red-400 text-sm mt-1">{errors.tags}</p>}
-            <p className="text-gray-400 text-sm mt-2">Select at least 2 tags to categorize your project</p>
-          </div>
-
-          {/* Rich Text Editor */}
-          <div>
-            <label className="block text-sky-300 font-semibold mb-2 text-sm uppercase tracking-wide">
-              Project Description *
-            </label>
-            <RichTextEditor content={content} onChange={setContent} />
-            {errors.content && <p className="text-red-400 text-sm mt-1">{errors.content}</p>}
-          </div>
-
-          {/* Info Box */}
-          <div className="card-style border-sky-500/30 p-4 bg-sky-900/10 rounded">
-            <p className="text-sky-300 text-sm">
-              <strong>Note:</strong> Publishing a moonshot requires a 1,000 sat payment via
-              Lightning. This helps prevent spam and ensures serious project submissions.
+            {errors.tags && <p className="mt-1 text-xs text-red-400">{errors.tags}</p>}
+            <p className="mt-2 text-xs text-gray-500">
+              Select at least 2 tags to categorize your project.
             </p>
           </div>
 
-          {/* Submit Button */}
+          {/* Description */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-300 mb-2">
+              Project Description *
+            </label>
+            <RichTextEditor content={content} onChange={setContent} />
+            {errors.content && <p className="mt-1 text-xs text-red-400">{errors.content}</p>}
+          </div>
+
+          {/* Info box */}
+          <div className="rounded-xl border border-white/15 bg-black/40 p-4">
+            <p className="text-xs sm:text-sm text-gray-200">
+              <span className="font-semibold text-bitcoin">Note:</span> Publishing a moonshot
+              requires a 1,000 sat payment via Lightning. This helps prevent spam and ensures
+              serious project submissions.
+            </p>
+          </div>
+
+          {/* Submit */}
           <button
             onClick={handleSubmit}
-            className="w-full bg-sky-200 hover:bg-sky-300 text-black font-bold py-4 text-lg uppercase tracking-wide transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] cursor-pointer rounded"
+            className="w-full rounded-full bg-bitcoin py-3 text-sm sm:text-base font-semibold uppercase tracking-wide text-black transition-all hover:bg-orange-400 hover:shadow-[0_0_30px_rgba(247,147,26,0.5)]"
           >
             {isAuthenticated ? "Publish Moonshot" : "Login to Publish"}
           </button>

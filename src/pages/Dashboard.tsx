@@ -21,11 +21,10 @@ function Dashboard() {
       }
 
       try {
-        // Fetch moonshots created by user
         const allMoonshots = await fetchAllMoonshots();
         const userMoonshots = allMoonshots.filter(
           m => m.creatorPubkey === userPubkey && m.isExplorable
-        ); // temp fix(isExplorable), need to refactor
+        );
         setMyMoonshots(userMoonshots);
       } catch (error) {
         console.error("Failed to fetch moonshots:", error);
@@ -34,7 +33,6 @@ function Dashboard() {
       }
 
       try {
-        // Fetch interests (applications) by user
         const interests = await fetchUserInterests(userPubkey);
         setMyInterests(interests);
       } catch (error) {
@@ -49,12 +47,14 @@ function Dashboard() {
 
   if (!userPubkey) {
     return (
-      <div className="min-h-screen bg-blackish flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-400 text-lg mb-4">Please connect your wallet to view dashboard</p>
+      <div className="min-h-screen bg-dark flex items-center justify-center px-4">
+        <div className="rounded-2xl border border-white/10 bg-card/80 px-6 py-8 text-center max-w-md w-full">
+          <p className="text-gray-300 text-sm sm:text-base mb-4">
+            Please connect your Nostr identity to view your dashboard.
+          </p>
           <button
             onClick={() => (window.location.href = "/")}
-            className="bg-sky-600 hover:bg-sky-500 text-white px-8 py-3 font-semibold uppercase transition-colors rounded"
+            className="inline-flex items-center justify-center rounded-full bg-bitcoin px-6 py-2.5 text-xs sm:text-sm font-semibold uppercase tracking-wide text-black hover:bg-orange-400 transition-colors"
           >
             Go Home
           </button>
@@ -64,17 +64,35 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-blackish py-12">
-      <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-5xl font-bold text-white mb-12">
-          Your <span className="text-sky-400">Dashboard</span>
-        </h1>
+    <div className="min-h-screen bg-dark pt-28 pb-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+        {/* Header */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white">
+              Your <span className="text-bitcoin">Dashboard</span>
+            </h1>
+          </div>
+          <div className="flex gap-2 text-xs text-gray-400">
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              Created: <span className="text-bitcoin font-semibold">{myMoonshots.length}</span>
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+              Interested: <span className="text-nostr font-semibold">{myInterests.length}</span>
+            </span>
+          </div>
+        </div>
 
-        {/* Section 1: Moonshots You Created */}
-        <CreatorMoonshotsSection moonshots={myMoonshots} loading={loadingMoonshots} />
+        {/* Sections */}
+        <div className="space-y-8">
+          <div className="rounded-2xl border border-white/10 bg-card/80 p-4 sm:p-6">
+            <CreatorMoonshotsSection moonshots={myMoonshots} loading={loadingMoonshots} />
+          </div>
 
-        {/* Section 2: Moonshots You're Interested In */}
-        <InterestedMoonshotsSection interests={myInterests} loading={loadingInterests} />
+          <div className="rounded-2xl border border-white/10 bg-card/80 p-4 sm:p-6">
+            <InterestedMoonshotsSection interests={myInterests} loading={loadingInterests} />
+          </div>
+        </div>
       </div>
     </div>
   );

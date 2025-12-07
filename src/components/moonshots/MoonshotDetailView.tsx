@@ -17,6 +17,7 @@ import ShareButton from "./ShareButton";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import MoonshotVersionHistory from "./MoonshotVersionHistory";
 import CommentSection from "../comments/CommentSection";
+import { useToast } from "../../context/ToastContext";
 
 interface MoonshotDetailViewProps {
   moonshot: Moonshot;
@@ -42,6 +43,8 @@ function MoonshotDetailView({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentMoonshot, setCurrentMoonshot] = useState<Moonshot>(moonshot);
+
+  const { showToast } = useToast();
 
   useEffect(() => {
     const loadData = async () => {
@@ -122,10 +125,11 @@ function MoonshotDetailView({
       }
 
       setShowEditDialog(false);
-      alert("Moonshot updated successfully!");
+
+      showToast("Moonshot updated successfully!", "success");
     } catch (error) {
       console.error("Failed to update moonshot:", error);
-      alert("Failed to update moonshot. Please try again.");
+      showToast("Failed to update moonshot. Please try again", "error");
     }
   };
 
@@ -142,7 +146,7 @@ function MoonshotDetailView({
       onBack();
     } catch (error) {
       console.error("Failed to delete moonshot:", error);
-      alert("Failed to delete moonshot. Please try again.");
+      showToast("Failed to delete moonshot. Please try again", "error");
     } finally {
       setIsDeleting(false);
     }
@@ -150,64 +154,66 @@ function MoonshotDetailView({
 
   return (
     <>
-      <div className="min-h-screen bg-blackish py-12">
-        <div className="max-w-6xl mx-auto px-4">
-          {/* Back Button */}
-          <div className="flex justify-between items-center mb-6">
+      <div className="min-h-screen bg-dark pt-28 pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Back + actions */}
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-sky-400 hover:text-sky-300 transition-colors"
+              className="inline-flex items-center gap-2 text-xs font-medium text-gray-300 hover:text-white transition-colors"
             >
-              <BsArrowLeft className="text-xl" />
-              <span className="font-semibold">Back to Dashboard</span>
+              <BsArrowLeft className="text-sm" />
+              <span>Back to Dashboard</span>
             </button>
 
-            {/* Edit and Delete Buttons */}
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={() => setShowEditDialog(true)}
-                className="flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-lg transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3.5 py-1.5 text-xs font-medium text-gray-200 hover:bg-white/10 transition-colors cursor-pointer"
               >
-                <BsPencil className="text-lg" />
-                <span>Edit</span>
+                <BsPencil className="text-xs" />
+                Edit
               </button>
-
               <button
                 onClick={() => setShowDeleteDialog(true)}
-                className="flex items-center gap-2 bg-red-500 hover:bg-red-400 text-white px-4 py-2 rounded-lg transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-full bg-red-500/90 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-red-400 transition-colors cursor-pointer"
               >
-                <BsTrash2 size={18} />
-                <span>Remove</span>
+                <BsTrash2 size={12} />
+                Remove
               </button>
             </div>
           </div>
 
-          {/* Moonshot Overview Card */}
-          <div className="card-style p-8 mb-8">
-            <div className="flex justify-between items-start mb-4">
+          {/* Overview */}
+          <div className="mb-6 rounded-2xl border border-white/10 bg-card/80 px-4 py-5 sm:px-6 sm:py-6">
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-center gap-2">
-                <h1 className="text-4xl font-bold text-white">{currentMoonshot.title}</h1>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white">
+                  {currentMoonshot.title}
+                </h1>
                 {versions.length > 0 && (
-                  <span className="flex items-center gap-1 px-2 py-1 bg-sky-900/30 border border-sky-500/30 text-sky-300 text-xs rounded">
-                    <BsPencilSquare className="text-xs" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium text-gray-200 border border-white/15">
+                    <BsPencilSquare className="text-[10px]" />
                     Edited
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-red-400">
+              <div className="flex items-center gap-2 text-xs text-gray-300">
                 <ShareButton moonshot={moonshot} />
-                <FiHeart className="text-2xl" />
-                <span className="text-xl font-semibold">{upvoteCount}</span>
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1">
+                  <FiHeart className="text-red-400 text-sm" />
+                  <span className="font-semibold">{upvoteCount}</span>
+                </div>
               </div>
             </div>
 
             {/* Topics */}
             {currentMoonshot.topics && currentMoonshot.topics.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="mb-4 flex flex-wrap gap-1.5">
                 {currentMoonshot.topics.map((topic, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-sky-900/20 border border-sky-500/30 text-sky-300 text-sm rounded-full"
+                    className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] text-gray-200"
                   >
                     #{topic}
                   </span>
@@ -216,23 +222,25 @@ function MoonshotDetailView({
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-              <div className="bg-blackish border border-sky-500/30 p-4 rounded">
-                <p className="text-gray-400 text-sm mb-1">Budget</p>
-                <p className="text-sky-300 text-xl font-bold">{currentMoonshot.budget} sats</p>
+            <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">
+              <div className="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5">
+                <p className="mb-0.5 text-[11px] text-gray-500">Budget</p>
+                <p className="text-sm font-semibold text-bitcoin">{currentMoonshot.budget} sats</p>
               </div>
-              <div className="bg-blackish border border-sky-500/30 p-4 rounded">
-                <p className="text-gray-400 text-sm mb-1">Timeline</p>
-                <p className="text-sky-300 text-xl font-bold">{currentMoonshot.timeline} months</p>
+              <div className="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5">
+                <p className="mb-0.5 text-[11px] text-gray-500">Timeline</p>
+                <p className="text-sm font-semibold text-gray-200">
+                  {currentMoonshot.timeline} months
+                </p>
               </div>
-              <div className="bg-blackish border border-sky-500/30 p-4 rounded">
-                <p className="text-gray-400 text-sm mb-1">Status</p>
+              <div className="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5">
+                <p className="mb-0.5 text-[11px] text-gray-500">Status</p>
                 <p
-                  className={`text-xl font-bold ${
+                  className={`text-sm font-semibold ${
                     currentMoonshot.status === "open"
                       ? "text-green-400"
                       : currentMoonshot.status === "assigned"
-                      ? "text-yellow-400"
+                      ? "text-yellow-300"
                       : currentMoonshot.status === "in-progress"
                       ? "text-blue-400"
                       : currentMoonshot.status === "completed"
@@ -243,29 +251,28 @@ function MoonshotDetailView({
                   {currentMoonshot.status}
                 </p>
               </div>
-              <div className="bg-blackish border border-sky-500/30 p-4 rounded">
-                <p className="text-gray-400 text-sm mb-1">Interested</p>
-                <p className="text-sky-300 text-xl font-bold">{interests.length}</p>
+              <div className="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5">
+                <p className="mb-0.5 text-[11px] text-gray-500">Interested</p>
+                <p className="text-sm font-semibold text-gray-200">{interests.length}</p>
               </div>
-              <div className="bg-blackish border border-amber-500/30 p-4 rounded">
-                <p className="text-gray-400 text-sm mb-1">Expected Chip-in</p>
-                <p className="text-amber-300 text-xl font-bold">
+              <div className="rounded-xl border border-amber-400/40 bg-black/40 px-3 py-2.5">
+                <p className="mb-0.5 text-[11px] text-gray-500">Expected Chip‑in</p>
+                <p className="text-sm font-semibold text-amber-300">
                   {totalChipIn > 0 ? `${totalChipIn.toLocaleString()} sats` : "0 sats"}
                 </p>
               </div>
             </div>
-            {/* Content Preview */}
-            <div className="prose prose-invert max-w-none">
-              <div className="text-gray-300 whitespace-pre-wrap">
-                {currentMoonshot.content.substring(0, 200)}...
-              </div>
+
+            {/* Short preview */}
+            <div className="text-[13px] text-gray-300 line-clamp-4 whitespace-pre-wrap">
+              {currentMoonshot.content}
             </div>
           </div>
 
-          {/* Version History */}
+          {/* Version history */}
           <MoonshotVersionHistory versions={versions} loading={loadingVersions} />
 
-          {/* Comment Section */}
+          {/* Comments */}
           <CommentSection
             moonshotId={moonshot.id}
             moonshotCreatorPubkey={moonshot.creatorPubkey}
@@ -274,26 +281,26 @@ function MoonshotDetailView({
             fetchedComments={comments}
           />
 
-          {/* Interested Builders Section */}
+          {/* Interested builders */}
           <div className="mt-8">
-            <h2 className="text-3xl font-bold text-white mb-6">
+            <h2 className="mb-4 text-lg sm:text-xl font-semibold text-white">
               Interested Builders ({interests.length})
             </h2>
 
             {loading ? (
-              <div className="card-style p-8 text-center">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-full border-4 border-sky-600/20 border-t-sky-600 animate-spin"></div>
-                <p className="text-gray-400">Loading builders...</p>
+              <div className="rounded-2xl border border-white/10 bg-card/80 px-6 py-6 text-center text-sm text-gray-300">
+                <div className="mx-auto mb-3 h-8 w-8 rounded-full border-2 border-white/20 border-t-bitcoin animate-spin" />
+                Loading builders…
               </div>
             ) : interests.length === 0 ? (
-              <div className="card-style p-8 text-center">
-                <p className="text-gray-400 text-lg">No builders have shown interest yet</p>
-                <p className="text-gray-500 text-sm mt-2">
-                  Share your moonshot to attract builders!
+              <div className="rounded-2xl border border-dashed border-white/10 bg-black/40 px-6 py-6 text-center text-sm text-gray-300">
+                <p>No builders have shown interest yet.</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Share your moonshot to attract builders.
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {interests.map(interest => (
                   <BuilderInfoCard key={interest.id} interest={interest} />
                 ))}
@@ -303,7 +310,7 @@ function MoonshotDetailView({
         </div>
       </div>
 
-      {/* Edit Moonshot Dialog */}
+      {/* Dialogs  */}
       {showEditDialog && (
         <EditMoonshotDialog
           moonshot={currentMoonshot}
@@ -311,8 +318,6 @@ function MoonshotDetailView({
           onClose={() => setShowEditDialog(false)}
         />
       )}
-
-      {/* Delete Confirmation Dialog */}
       {showDeleteDialog && (
         <DeleteConfirmationDialog
           moonshotTitle={currentMoonshot.title}

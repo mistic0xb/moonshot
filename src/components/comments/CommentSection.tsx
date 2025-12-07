@@ -33,7 +33,6 @@ function CommentSection({
       const commentTree = buildCommentTree(fetchedComments);
       setComments(commentTree);
 
-      // Fetch profiles for all unique comment authors
       const uniqueAuthors = [...new Set(fetchedComments.map(c => c.authorPubkey))];
       const profilePromises = uniqueAuthors.map(pubkey => fetchUserProfile(pubkey));
       const profiles = await Promise.all(profilePromises);
@@ -72,36 +71,41 @@ function CommentSection({
   };
 
   const totalComments = countAllComments(comments);
-
   const displayedComments = comments.slice(0, displayCount);
   const hasMore = comments.length > displayCount;
 
   return (
-    <div className="card-style p-6 mt-6">
-      {/* Header - Clickable to toggle */}
+    <div className="mt-6 rounded-2xl border border-white/5 bg-card/70 p-5 sm:p-6">
+      {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between w-full mb-6 hover:opacity-80 transition-opacity"
+        className="mb-5 flex w-full items-center justify-between text-left hover:opacity-90 transition-opacity cursor-pointer"
       >
         <div className="flex items-center gap-2">
-          <BsChat className="text-sky-400 text-xl" />
-          <h2 className="text-2xl font-bold text-white">
-            Comments {totalComments > 0 && `(${totalComments})`}
-          </h2>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5">
+            <BsChat className="text-bitcoin text-lg" />
+          </span>
+          <div>
+            <h2 className="text-base sm:text-lg font-semibold text-white">
+              Comments {totalComments > 0 && `(${totalComments})`}
+            </h2>
+            <p className="text-xs text-gray-500">
+              Share feedback, questions, or ideas with the creator.
+            </p>
+          </div>
         </div>
         {isExpanded ? (
-          <BsChevronUp className="text-sky-400 text-xl" />
+          <BsChevronUp className="text-gray-400" />
         ) : (
-          <BsChevronDown className="text-sky-400 text-xl" />
+          <BsChevronDown className="text-gray-400" />
         )}
       </button>
 
-      {/* Collapsible Content */}
       {isExpanded && (
         <>
-          {/* Comment Input (if authenticated) */}
+          {/* Input / Login prompt */}
           {isAuthenticated ? (
-            <div className="mb-6">
+            <div className="mb-5">
               <CommentInput
                 moonshotId={moonshotId}
                 moonshotCreatorPubkey={moonshotCreatorPubkey}
@@ -109,29 +113,31 @@ function CommentSection({
               />
             </div>
           ) : (
-            <div className="mb-6 bg-sky-900/10 border border-sky-500/30 rounded-lg p-4 text-center">
-              <p className="text-gray-400 text-sm mb-2">Login to join the conversation</p>
+            <div className="mb-5 rounded-xl border border-white/10 bg-white/5 p-4 text-center">
+              <p className="mb-2 text-xs sm:text-sm text-gray-400">
+                Login to join the conversation.
+              </p>
               <button
                 onClick={() =>
                   document.dispatchEvent(new CustomEvent("nlLaunch", { detail: "welcome-login" }))
                 }
-                className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-sm font-semibold rounded transition-colors"
+                className="rounded-full bg-bitcoin px-4 py-2 text-xs font-semibold text-black hover:bg-orange-400 transition-colors cursor-pointer"
               >
                 Login
               </button>
             </div>
           )}
 
-          {/* Comments List */}
+          {/* Comments list */}
           {loading ? (
-            <div className="text-center py-8">
-              <div className="w-8 h-8 mx-auto mb-2 rounded-full border-2 border-sky-600/20 border-t-sky-500 animate-spin"></div>
-              <p className="text-gray-400 text-sm">Loading comments...</p>
+            <div className="py-8 text-center">
+              <div className="mx-auto mb-2 h-6 w-6 rounded-full border-2 border-white/15 border-t-bitcoin animate-spin" />
+              <p className="text-xs text-gray-400">Loading comments…</p>
             </div>
           ) : comments.length === 0 ? (
-            <div className="text-center py-8 border border-sky-500/20 rounded-lg">
-              <p className="text-gray-400">No comments yet</p>
-              <p className="text-gray-500 text-sm mt-1">Be the first to comment!</p>
+            <div className="rounded-xl border border-dashed border-white/10 py-8 text-center">
+              <p className="text-sm text-gray-400">No comments yet.</p>
+              <p className="mt-1 text-xs text-gray-500">Be the first to comment.</p>
             </div>
           ) : (
             <>
@@ -149,12 +155,11 @@ function CommentSection({
                 ))}
               </div>
 
-              {/* Load More Button */}
               {hasMore && (
-                <div className="mt-6 text-center">
+                <div className="mt-5 text-center">
                   <button
                     onClick={() => setDisplayCount(prev => prev + 20)}
-                    className="px-6 py-2 bg-sky-900/20 hover:bg-sky-900/30 border border-sky-500/30 text-sky-300 text-sm font-semibold rounded transition-colors"
+                    className="rounded-full border border-white/15 bg-white/5 px-5 py-2 text-xs font-semibold text-gray-200 hover:border-bitcoin/60 hover:text-bitcoin hover:bg-black/40 transition-colors cursor-pointer"
                   >
                     Load More Comments
                   </button>

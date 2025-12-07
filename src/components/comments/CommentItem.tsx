@@ -23,8 +23,8 @@ function CommentItem({
   depth = 0,
 }: CommentItemProps) {
   const [showReplyInput, setShowReplyInput] = useState(false);
-  const [showReplies, setShowReplies] = useState(false); // NEW: collapsed by default
-  const maxDepth = 3; // Limit nesting depth
+  const [showReplies, setShowReplies] = useState(false);
+  const maxDepth = 3;
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -43,7 +43,8 @@ function CommentItem({
 
   const handleReplyClick = () => {
     if (!isAuthenticated) {
-      document.dispatchEvent(new CustomEvent("nlLaunch", { detail: "welcome-login" }));
+      document.dispatchEvent(
+        new CustomEvent("nlLaunch", { detail: "welcome-login" }));
       return;
     }
     setShowReplyInput(!showReplyInput);
@@ -55,39 +56,34 @@ function CommentItem({
   };
 
   return (
-    <div className={`${depth > 0 ? "ml-8 mt-3" : ""}`}>
-      <div className="bg-sky-900/5 border border-sky-500/20 rounded-lg p-4">
-        {/* Comment Header */}
-        <div className="flex items-start gap-3 mb-3">
-          {/* Avatar */}
+    <div className={depth > 0 ? "ml-4 sm:ml-8 mt-3" : ""}>
+      <div className="rounded-xl border border-white/10 bg-white/5 p-3.5 sm:p-4">
+        {/* Header */}
+        <div className="flex items-start gap-3">
           {userProfile?.picture ? (
             <img
               src={userProfile.picture}
               alt={userProfile.name || "User"}
-              className="w-9 h-9 rounded-full border border-sky-500/30 shrink-0"
+              className="h-8 w-8 shrink-0 rounded-full border border-white/15 object-cover"
             />
           ) : (
-            <div className="w-9 h-9 rounded-full bg-sky-900/50 border border-sky-500/30 flex items-center justify-center shrink-0">
-              <span className="text-sky-300 text-xs font-bold">
-                {comment.authorPubkey.slice(0, 2).toUpperCase()}
-              </span>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-tr from-bitcoin to-nostr text-[10px] font-bold text-white">
+              {comment.authorPubkey.slice(0, 2).toUpperCase()}
             </div>
           )}
 
-          {/* Author & Time */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sky-300 font-semibold text-sm">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="font-semibold text-gray-100">
                 {userProfile?.name || `${comment.authorPubkey.slice(0, 8)}...`}
               </span>
-              <span className="text-gray-500 text-xs">•</span>
-              <span className="text-gray-500 text-xs">{formatDate(comment.createdAt)}</span>
+              <span className="text-gray-500">•</span>
+              <span className="text-gray-500">{formatDate(comment.createdAt)}</span>
 
-              {/* Chip-In Badge */}
               {comment.chipIn > 0 && (
                 <>
-                  <span className="text-gray-500 text-xs">•</span>
-                  <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-900/20 border border-amber-500/30 text-amber-300 text-xs rounded-full">
+                  <span className="text-gray-500">•</span>
+                  <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] text-amber-300 border border-amber-500/30">
                     <BsCoin className="text-xs" />
                     {comment.chipIn.toLocaleString()} sats
                   </span>
@@ -97,37 +93,36 @@ function CommentItem({
           </div>
         </div>
 
-        {/* Comment Content */}
-        <div className="text-gray-200 text-sm whitespace-pre-wrap wrap-break-word mb-3 ml-12">
+        {/* Content */}
+        <div className="mb-3 text-xs sm:text-sm text-gray-100 whitespace-pre-wrap wrap-break-words ml-10">
           {comment.content}
         </div>
 
-        {/* Reply Button */}
+        {/* Actions */}
         {depth < maxDepth && (
-          <div className="ml-12 flex items-center gap-4">
+          <div className="ml-10 flex flex-wrap items-center gap-3">
             <button
               onClick={handleReplyClick}
-              className="flex items-center gap-1.5 text-sky-400 hover:text-sky-300 text-xs font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-bitcoin hover:text-orange-300 transition-colors"
             >
-              <BsReply className="text-sm" />
+              <BsReply className="text-xs" />
               Reply
             </button>
 
-            {/* Show/Hide Replies Button */}
             {comment.replies && comment.replies.length > 0 && (
               <button
                 onClick={() => setShowReplies(!showReplies)}
-                className="flex items-center gap-1.5 text-gray-400 hover:text-gray-300 text-xs font-medium transition-colors"
+                className="inline-flex items-center gap-1.5 text-[11px] font-medium text-gray-400 hover:text-gray-200 transition-colors"
               >
                 {showReplies ? (
                   <>
-                    <BsChevronUp className="text-sm" />
+                    <BsChevronUp className="text-xs" />
                     Hide {comment.replies.length}{" "}
                     {comment.replies.length === 1 ? "reply" : "replies"}
                   </>
                 ) : (
                   <>
-                    <BsChevronDown className="text-sm" />
+                    <BsChevronDown className="text-xs" />
                     Show {comment.replies.length}{" "}
                     {comment.replies.length === 1 ? "reply" : "replies"}
                   </>
@@ -137,9 +132,9 @@ function CommentItem({
           </div>
         )}
 
-        {/* Reply Input */}
+        {/* Reply input */}
         {showReplyInput && (
-          <div className="ml-12 mt-3">
+          <div className="ml-10 mt-3">
             <CommentInput
               moonshotId={moonshotId}
               moonshotCreatorPubkey={moonshotCreatorPubkey}
@@ -153,14 +148,14 @@ function CommentItem({
         )}
       </div>
 
-      {/* Nested Replies */}
+      {/* Nested replies */}
       {comment.replies && comment.replies.length > 0 && showReplies && (
         <div className="mt-3 space-y-3">
           {comment.replies.map(reply => (
             <CommentItem
               key={reply.id}
               comment={reply}
-              userProfile={undefined} // Will be fetched separately
+              userProfile={undefined}
               moonshotId={moonshotId}
               moonshotCreatorPubkey={moonshotCreatorPubkey}
               isAuthenticated={isAuthenticated}

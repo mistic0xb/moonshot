@@ -50,17 +50,16 @@ export default function RichTextEditor({ content, onChange }: Props) {
     const end = textarea.selectionEnd;
     const selected = content.slice(start, end);
 
+    const hashes = "#".repeat(level);
     let updated = "";
 
     if (selected) {
-      const hashes = "#".repeat(level);
       updated = content.slice(0, start) + `${hashes} ${selected}` + content.slice(end);
+      onChange(updated);
     } else {
-      const hashes = "#".repeat(level);
       updated = content.slice(0, start) + `${hashes} ` + content.slice(end);
+      onChange(updated);
     }
-
-    onChange(updated);
 
     setTimeout(() => {
       if (textarea) {
@@ -93,7 +92,7 @@ A brief description of what your project does...
       type="button"
       onClick={onClick}
       title={title}
-      className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-md text-sm font-medium transition-colors"
+      className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-gray-200 hover:border-bitcoin/60 hover:text-bitcoin hover:bg-black/40 transition-colors"
     >
       {children}
     </button>
@@ -102,18 +101,18 @@ A brief description of what your project does...
   return (
     <div className="space-y-3">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-2 bg-blackish border border-sky-500/30 p-3 rounded-lg">
-        {/* Text Formatting */}
+      <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-black/40 p-3">
         <div className="flex gap-2">
           <ToolbarButton onClick={() => applyFormatting("**", "**")} title="Bold">
-            <strong>B</strong>
+            <strong className="text-sm">B</strong>
           </ToolbarButton>
           <ToolbarButton onClick={() => applyFormatting("_", "_")} title="Italic">
-            <em>I</em>
+            <em className="text-sm">I</em>
           </ToolbarButton>
         </div>
 
-        {/* Headings */}
+        <div className="h-6 w-px bg-white/10 mx-1 hidden sm:block" />
+
         <div className="flex gap-2">
           <ToolbarButton onClick={() => applyHeading(1)} title="Heading 1">
             H1
@@ -126,7 +125,8 @@ A brief description of what your project does...
           </ToolbarButton>
         </div>
 
-        {/* Lists */}
+        <div className="h-6 w-px bg-white/10 mx-1 hidden sm:block" />
+
         <div className="flex gap-2">
           <ToolbarButton onClick={() => applyFormatting("- ")} title="Bullet List">
             • List
@@ -137,49 +137,55 @@ A brief description of what your project does...
         </div>
       </div>
 
-      {/* Editor and Preview Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Editor + Preview */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Editor */}
         <div>
-          <label className="block text-sky-300 font-semibold mb-2 text-sm">Markdown Editor</label>
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-300">
+            Markdown Editor
+          </label>
           <textarea
             ref={textareaRef}
             value={content}
             onChange={e => onChange(e.target.value)}
-            className="w-full min-h-[300px] bg-blackish border border-sky-500/30 text-white p-4 rounded-lg focus:outline-none focus:border-sky-400 resize-y font-mono text-sm"
+            className="w-full min-h-[260px] rounded-2xl border border-white/10 bg-black/60 p-3.5 text-sm font-mono text-gray-100 placeholder:text-gray-600 focus:outline-none focus:border-bitcoin resize-y"
             placeholder={projectDescExample}
           />
         </div>
 
         {/* Preview */}
         <div>
-          <label className="block text-sky-300 font-semibold mb-2 text-sm">Live Preview</label>
-          <div className="bg-blackish border border-sky-500/30 p-4 rounded-lg min-h-[300px] prose prose-invert max-w-none wrap-break-word overflow-wrap-anywhere">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-300">
+            Live Preview
+          </label>
+          <div className="min-h-[260px] rounded-2xl border border-white/10 bg-black/40 p-4 prose prose-invert max-w-none wrap-break-words">
             <ReactMarkdown
               components={{
                 h1: ({ children }) => (
-                  <h1 className="text-2xl font-bold text-white mt-4 mb-3">{children}</h1>
+                  <h1 className="mt-3 mb-2 text-2xl font-bold text-white">{children}</h1>
                 ),
                 h2: ({ children }) => (
-                  <h2 className="text-xl font-bold text-white mt-4 mb-3">{children}</h2>
+                  <h2 className="mt-3 mb-2 text-xl font-semibold text-white">{children}</h2>
                 ),
                 h3: ({ children }) => (
-                  <h3 className="text-lg font-bold text-white mt-3 mb-2">{children}</h3>
+                  <h3 className="mt-2 mb-1 text-lg font-semibold text-white">{children}</h3>
                 ),
                 p: ({ children }) => (
-                  <p className="text-gray-300 mb-4 leading-relaxed">{children}</p>
+                  <p className="mb-3 text-sm leading-relaxed text-gray-300">{children}</p>
                 ),
                 ul: ({ children }) => (
-                  <ul className="text-gray-300 mb-4 list-disc list-inside space-y-1">{children}</ul>
+                  <ul className="mb-3 list-disc list-inside space-y-1 text-sm text-gray-300">
+                    {children}
+                  </ul>
                 ),
                 ol: ({ children }) => (
-                  <ol className="text-gray-300 mb-4 list-decimal list-inside space-y-1">
+                  <ol className="mb-3 list-decimal list-inside space-y-1 text-sm text-gray-300">
                     {children}
                   </ol>
                 ),
-                li: ({ children }) => <li className="text-gray-300">{children}</li>,
+                li: ({ children }) => <li className="text-sm text-gray-300">{children}</li>,
                 strong: ({ children }) => (
-                  <strong className="font-bold text-white">{children}</strong>
+                  <strong className="font-semibold text-white">{children}</strong>
                 ),
                 em: ({ children }) => <em className="italic text-gray-300">{children}</em>,
               }}

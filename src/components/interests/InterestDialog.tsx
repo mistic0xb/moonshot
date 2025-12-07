@@ -3,21 +3,18 @@ import { BsGithub, BsPlus, BsX } from "react-icons/bs";
 import { nip19 } from "nostr-tools";
 import type { ProofOfWorkLink } from "../../types/types";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 
 interface InterestDialogProps {
   moonshotEventId: string;
-  onSubmit: (
-    message: string, 
-    github?: string, 
-    proofOfWorkLinks?: ProofOfWorkLink[]
-  ) => void;
+  onSubmit: (message: string, github?: string, proofOfWorkLinks?: ProofOfWorkLink[]) => void;
   onClose: () => void;
 }
 
-export function InterestDialog({ 
-  // moonshotEventId, 
-  onSubmit, 
-  onClose 
+export function InterestDialog({
+  // moonshotEventId,
+  onSubmit,
+  onClose,
 }: InterestDialogProps) {
   const [message, setMessage] = useState("");
   const [github, setGithub] = useState("");
@@ -25,33 +22,30 @@ export function InterestDialog({
   const [newLinkUrl, setNewLinkUrl] = useState("");
   const [newLinkDesc, setNewLinkDesc] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  
+
   const { userPubkey } = useAuth();
   const userNpub = userPubkey ? nip19.npubEncode(userPubkey) : "Not logged in";
+  const { showToast } = useToast();
 
   const handleAddLink = () => {
     if (!newLinkUrl.trim()) {
-      alert("Please enter a URL");
+      showToast("Please enter a url", "info");
       return;
     }
 
-    // Basic URL validation
     try {
       new URL(newLinkUrl);
     } catch {
-      alert("Please enter a valid URL");
+      showToast("Please enter a vaild URL", "info");
       return;
     }
 
     if (proofLinks.length >= 10) {
-      alert("Maximum 10 proof-of-work links allowed");
+      showToast("Maximum 10 proof-of-work links allowed", "info");
       return;
     }
 
-    setProofLinks([
-      ...proofLinks,
-      { url: newLinkUrl, description: newLinkDesc }
-    ]);
+    setProofLinks([...proofLinks, { url: newLinkUrl, description: newLinkDesc }]);
 
     setNewLinkUrl("");
     setNewLinkDesc("");
@@ -62,20 +56,19 @@ export function InterestDialog({
   };
 
   const formatGitHubUrl = (url: string): string => {
-    // Remove any protocol and www, extract username
-    const cleaned = url.replace(/^(https?:\/\/)?(www\.)?github\.com\//, '');
-    const username = cleaned.split('/')[0];
+    const cleaned = url.replace(/^(https?:\/\/)?(www\.)?github\.com\//, "");
+    const username = cleaned.split("/")[0];
     return username;
   };
 
   const handleSubmit = async () => {
     if (!message.trim()) {
-      alert("Please enter a message");
+      showToast("Please enter a message", "info");
       return;
     }
 
     if (message.length < 10) {
-      alert("Please write a more detailed message (at least 10 characters)");
+      showToast("Please write a more detailed message (at least 10 characters)", "info");
       return;
     }
 
@@ -83,8 +76,8 @@ export function InterestDialog({
 
     try {
       await onSubmit(
-        message, 
-        github ? formatGitHubUrl(github) : undefined, 
+        message,
+        github ? formatGitHubUrl(github) : undefined,
         proofLinks.length > 0 ? proofLinks : undefined
       );
     } finally {
@@ -93,96 +86,101 @@ export function InterestDialog({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newLinkUrl.trim()) {
+    if (e.key === "Enter" && newLinkUrl.trim()) {
       handleAddLink();
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      {/* <div className="card-style max-w-2xl w-full p-8 relative my-8"> */}
-        <div className="card-style max-w-2xl w-full p-8 relative my-8 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 py-8 overflow-y-auto">
+      <div className="relative w-full max-w-xl rounded-2xl border border-white/10 bg-linear-to-br from-dark via-card to-card/95 p-6 sm:p-8 shadow-[0_0_40px_rgba(0,0,0,0.9)]">
+        {/* Close button */}
         <button
           onClick={onClose}
           disabled={submitting}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl font-bold disabled:opacity-50"
+          className="absolute right-4 top-4 rounded-full bg-white/5 p-1.5 text-gray-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50"
         >
-          ×
+          <BsX className="text-lg" />
         </button>
 
-        <h2 className="text-3xl font-bold text-white mb-2">Show Your Interest</h2>
-        <p className="text-gray-400 mb-6">Tell the creator why you're the right builder for this project</p>
+        {/* Header */}
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Show Your Interest</h2>
+        <p className="text-sm text-gray-400 mb-6">
+          Tell the creator why you&apos;re the right builder for this project.
+        </p>
 
         <div className="space-y-6">
-          {/* Nostr Pubkey */}
+          {/* Nostr identity */}
           <div>
-            <label className="block text-sky-200 font-semibold mb-2 text-sm uppercase tracking-wide">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-300">
               Your Nostr Identity
             </label>
             <input
               type="text"
               value={userNpub}
               disabled
-              className="w-full bg-sky-900/20 border border-sky-500/30 text-gray-400 px-4 py-3 rounded font-mono text-sm"
+              className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-2.5 font-mono text-xs text-gray-400"
             />
-            <p className="text-gray-500 text-xs mt-1">This will be visible to the project creator</p>
+            <p className="mt-1 text-[11px] text-gray-500">
+              This will be visible to the project creator.
+            </p>
           </div>
 
-          {/* Message */}
+          {/* Pitch */}
           <div>
-            <label className="block text-sky-200 font-semibold mb-2 text-sm uppercase tracking-wide">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-300">
               Your Pitch *
             </label>
             <textarea
               value={message}
               onChange={e => setMessage(e.target.value)}
               placeholder="Tell them about your experience, why you're interested, and what you can bring to the project..."
-              rows={5}
-              className="w-full bg-blackish border border-sky-500/30 text-white px-4 py-3 focus:border-sky-400 focus:outline-none transition-colors rounded resize-vertical"
+              rows={4}
+              className="w-full resize-vertical rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin"
             />
-            <p className="text-gray-500 text-xs mt-1">
+            <p className="mt-1 text-[11px] text-gray-500">
               {message.length}/500 characters • Minimum 10 characters
             </p>
           </div>
 
-          {/* GitHub (Optional) */}
+          {/* GitHub */}
           <div>
-            <label className="block text-sky-200 font-semibold mb-2 text-sm uppercase tracking-wide">
-              GitHub Username (Optional)
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-300">
+              GitHub Username (optional)
             </label>
-            <div className="flex items-center gap-2 bg-blackish border border-sky-500/30 px-4 py-3 rounded">
-              <BsGithub className="text-gray-400 text-xl" />
+            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-2.5">
+              <BsGithub className="text-lg text-gray-400" />
               <input
                 type="text"
                 value={github}
                 onChange={e => setGithub(e.target.value)}
-                placeholder="username (we'll extract it from URL if provided)"
-                className="flex-1 bg-transparent text-white focus:outline-none"
+                placeholder="username or full GitHub URL"
+                className="flex-1 bg-transparent text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none"
               />
             </div>
-            <p className="text-gray-500 text-xs mt-1">
-              You can paste full GitHub URL or just your username
+            <p className="mt-1 text-[11px] text-gray-500">
+              Paste your full GitHub URL or just your username.
             </p>
           </div>
 
-          {/* Proof of Work Links */}
+          {/* Proof of work */}
           <div>
-            <label className="block text-sky-200 font-semibold mb-2 text-sm uppercase tracking-wide">
-              Proof of Work (Optional)
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-300">
+              Proof of Work (optional)
             </label>
-            <p className="text-gray-400 text-sm mb-3">
-              Showcase your previous work, projects, or contributions (max 10 links)
+            <p className="mb-3 text-sm text-gray-400">
+              Showcase previous work, projects, or contributions (max 10 links).
             </p>
-            
-            {/* Add Link Form */}
-            <div className="space-y-2 mb-4">
+
+            {/* Add link */}
+            <div className="mb-3 space-y-2">
               <input
                 type="url"
                 value={newLinkUrl}
                 onChange={e => setNewLinkUrl(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="https://github.com/yourname/your-project"
-                className="w-full bg-blackish border border-sky-500/30 text-white px-4 py-2 focus:border-sky-400 focus:outline-none transition-colors rounded"
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin"
               />
               <input
                 type="text"
@@ -190,46 +188,46 @@ export function InterestDialog({
                 onChange={e => setNewLinkDesc(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Brief description of this work..."
-                className="w-full bg-blackish border border-sky-500/30 text-white px-4 py-2 focus:border-sky-400 focus:outline-none transition-colors rounded"
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin"
               />
               <button
                 onClick={handleAddLink}
                 disabled={proofLinks.length >= 10 || !newLinkUrl.trim()}
-                className="w-full bg-sky-700 hover:bg-sky-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-4 py-2 rounded flex items-center justify-center gap-2 transition-colors"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-bitcoin px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-300"
               >
-                <BsPlus className="text-xl" />
+                <BsPlus className="text-lg" />
                 Add Link ({proofLinks.length}/10)
               </button>
             </div>
 
-            {/* Display Added Links */}
+            {/* Links list */}
             {proofLinks.length > 0 && (
               <div className="space-y-2">
-                <p className="text-gray-400 text-sm font-medium">Added links:</p>
+                <p className="text-sm font-medium text-gray-300">Added links:</p>
                 {proofLinks.map((link, index) => (
-                  <div 
+                  <div
                     key={index}
-                    className="bg-sky-900/20 border border-sky-500/30 p-3 rounded flex items-start justify-between gap-2 group"
+                    className="group flex items-start justify-between gap-2 rounded-xl border border-white/10 bg-black/40 p-3"
                   >
-                    <div className="flex-1 min-w-0">
-                      <a 
-                        href={link.url} 
-                        target="_blank" 
+                    <div className="min-w-0 flex-1">
+                      <a
+                        href={link.url}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sky-300 hover:text-sky-200 text-sm break-all underline"
+                        className="break-all text-xs text-bitcoin underline hover:text-orange-300"
                       >
                         {link.url}
                       </a>
                       {link.description && (
-                        <p className="text-gray-400 text-xs mt-1">{link.description}</p>
+                        <p className="mt-1 text-[11px] text-gray-400">{link.description}</p>
                       )}
                     </div>
                     <button
                       onClick={() => handleRemoveLink(index)}
                       disabled={submitting}
-                      className="text-red-400 hover:text-red-300 transition-colors shrink-0 opacity-0 group-hover:opacity-100 disabled:opacity-30"
+                      className="shrink-0 text-red-400 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100 disabled:opacity-40"
                     >
-                      <BsX className="text-2xl" />
+                      <BsX className="text-lg" />
                     </button>
                   </div>
                 ))}
@@ -237,16 +235,16 @@ export function InterestDialog({
             )}
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             onClick={handleSubmit}
             disabled={submitting || !message.trim() || message.length < 10}
-            className="w-full bg-sky-200 hover:bg-sky-300 disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-bold py-4 text-lg uppercase tracking-wide transition-all duration-300 cursor-pointer rounded flex items-center justify-center gap-2"
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-bitcoin px-4 py-3 text-sm font-semibold uppercase tracking-wide text-black transition-all hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-200"
           >
             {submitting ? (
               <>
-                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                Submitting...
+                <div className="h-4 w-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+                Submitting…
               </>
             ) : (
               "Submit Interest"
