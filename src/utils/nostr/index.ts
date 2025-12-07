@@ -10,6 +10,7 @@ export {
 export {
     fetchAllMoonshots,
     fetchMoonshotById,
+    fetchAllMoonshotsByCreator,
     fetchMoonshotVersions,
 } from "./fetchMoonshots";
 

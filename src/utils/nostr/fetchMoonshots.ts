@@ -1,5 +1,5 @@
 
-import type { Event } from "nostr-tools";
+import type { Event, Filter } from "nostr-tools";
 import type { Moonshot } from "../../types/types";
 import { getPool } from "./pool";
 import { DEFAULT_RELAYS } from "./relayConfig";
@@ -70,6 +70,75 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
             },
         });
     });
+}
+
+export async function fetchAllMoonshotsByCreator(creatorPubkey: string): Promise<Moonshot[]> {
+    const pool = getPool();
+    return new Promise(resolve => {
+        const moonshots: Moonshot[] = [];
+        const seen = new Set<string>();
+        let sub: any;
+
+        const timeout = setTimeout(() => {
+            if (sub) sub.close();
+            console.log("Fetched creator moonshots :", moonshots.length);
+            resolve(moonshots);
+        }, 5000);
+
+        const filter: Filter = {
+            kinds: [30078],
+            authors: [creatorPubkey],
+            "#t": ["moonshot"],
+            limit: 50,
+        };
+
+        sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
+            onevent(event: Event) {
+                if (seen.has(event.id)) return;
+                seen.add(event.id);
+
+                try {
+                    const dTag = event.tags.find(t => t[0] === "d");
+                    const titleTag = event.tags.find(t => t[0] === "title");
+                    const budgetTag = event.tags.find(t => t[0] === "budget");
+                    const timelineTag = event.tags.find(t => t[0] === "timeline");
+                    const statusTag = event.tags.find(t => t[0] === "status");
+                    const topicsTag = event.tags.find(t => t[0] === "topics");
+                    const isExplorableTag = event.tags.find(t => t[0] === "isExplorable");
+
+                    if (!dTag || !titleTag) {
+                        console.warn("Invalid moonshot event (missing d or title):", event);
+                        return;
+                    }
+
+                    const moonshot: Moonshot = {
+                        id: dTag[1],
+                        eventId: event.id,
+                        title: titleTag[1],
+                        content: event.content,
+                        budget: budgetTag?.[1] || "TBD",
+                        timeline: timelineTag?.[1] || "TBD",
+                        topics: topicsTag ? topicsTag.slice(1) : [], // Get all topics after tag name
+                        status: (statusTag?.[1] as any) || "open",
+                        creatorPubkey: event.pubkey,
+                        isExplorable: isExplorableTag?.[1] === "true",
+                        createdAt: event.created_at * 1000,
+                    };
+
+                    moonshots.push(moonshot);
+                } catch (err) {
+                    console.error("Failed to parse moonshot event:", err);
+                }
+            },
+            oneose() {
+                clearTimeout(timeout);
+                if (sub) sub.close();
+                console.log("Subscription closed, total moonshots:", moonshots.length);
+                resolve(moonshots.filter(m => m.isExplorable === true));
+            },
+        });
+    });
+
 }
 
 // Fetch single moonshot by ID
