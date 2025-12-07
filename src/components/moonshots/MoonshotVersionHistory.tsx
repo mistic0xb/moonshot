@@ -14,13 +14,9 @@ function MoonshotVersionHistory({ versions, loading }: MoonshotVersionHistoryPro
 
   const toggleVersion = (versionId: string) => {
     setExpandedVersions(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(versionId)) {
-        newSet.delete(versionId);
-      } else {
-        newSet.add(versionId);
-      }
-      return newSet;
+      const next = new Set(prev);
+      next.has(versionId) ? next.delete(versionId) : next.add(versionId);
+      return next;
     });
   };
 
@@ -37,119 +33,122 @@ function MoonshotVersionHistory({ versions, loading }: MoonshotVersionHistoryPro
 
   if (loading) {
     return (
-      <div className="card-style p-4 mt-6">
-        <div className="flex items-center gap-2 text-gray-400">
-          <div className="w-4 h-4 rounded-full border-2 border-sky-600/20 border-t-sky-500 animate-spin"></div>
-          <span className="text-sm">Loading edit history...</span>
-        </div>
+      <div className="mt-5 rounded-2xl border border-white/10 bg-card/70 px-4 py-3 text-xs text-gray-400 flex items-center gap-2">
+        <div className="h-4 w-4 rounded-full border-2 border-white/20 border-t-bitcoin animate-spin" />
+        <span>Loading edit history…</span>
       </div>
     );
   }
 
-  if (versions.length === 0) {
-    return null;
-  }
+  if (versions.length === 0) return null;
 
   return (
-    <div className="card-style p-4 mt-6">
+    <div className="mt-5 rounded-2xl border border-white/10 bg-card/70 px-3.5 py-3">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between w-full text-left hover:bg-sky-900/10 p-2 rounded transition-colors"
+        className="flex w-full items-center justify-between rounded-xl px-2 py-1.5 text-left text-xs hover:bg-white/5 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <BsClock className="text-sky-400" />
-          <span className="text-sky-300 font-semibold">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5">
+            <BsClock className="text-bitcoin text-sm" />
+          </span>
+          <span className="font-semibold text-gray-200">
             Previous Edited Versions ({versions.length})
           </span>
         </div>
         {isExpanded ? (
-          <BsChevronUp className="text-sky-400" />
+          <BsChevronUp className="text-gray-400" />
         ) : (
-          <BsChevronDown className="text-sky-400" />
+          <BsChevronDown className="text-gray-400" />
         )}
       </button>
 
       {isExpanded && (
-        <div className="mt-4 space-y-3">
-          {versions.map((version, index) => (
-            <div key={version.id} className="border border-sky-500/20 rounded-lg overflow-hidden">
-              <button
-                onClick={() => toggleVersion(version.id)}
-                className="flex items-center justify-between w-full p-4 hover:bg-sky-900/10 transition-colors"
+        <div className="mt-3 space-y-2">
+          {versions.map((version, index) => {
+            const open = expandedVersions.has(version.id);
+            return (
+              <div
+                key={version.id}
+                className="rounded-xl border border-white/10 bg-black/30 overflow-hidden text-xs"
               >
-                <div className="flex-1 text-left">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-gray-400 text-sm font-medium">
-                      Version {versions.length - index}
-                    </span>
-                    <span className="text-gray-500 text-xs">•</span>
-                    <span className="text-gray-500 text-xs">{formatDate(version.createdAt)}</span>
-                  </div>
-                  <h4 className="text-sky-300 font-semibold">{version.title}</h4>
-                </div>
-                {expandedVersions.has(version.id) ? (
-                  <BsChevronUp className="text-gray-400 ml-2" />
-                ) : (
-                  <BsChevronDown className="text-gray-400 ml-2" />
-                )}
-              </button>
-
-              {expandedVersions.has(version.id) && (
-                <div className="p-4 pt-0 border-t border-sky-500/10">
-                  {/* Topics */}
-                  {version.topics && version.topics.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {version.topics.map((topic, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 bg-sky-900/20 border border-sky-500/30 text-sky-300 text-xs rounded-full"
-                        >
-                          #{topic}
-                        </span>
-                      ))}
+                <button
+                  onClick={() => toggleVersion(version.id)}
+                  className="flex w-full items-center justify-between px-3 py-2 hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex-1 text-left">
+                    <div className="mb-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-400">
+                      <span className="font-medium">Version {versions.length - index}</span>
+                      <span>•</span>
+                      <span>{formatDate(version.createdAt)}</span>
                     </div>
+                    <h4 className="line-clamp-1 text-[13px] font-semibold text-gray-100">
+                      {version.title}
+                    </h4>
+                  </div>
+                  {open ? (
+                    <BsChevronUp className="ml-2 text-gray-400" />
+                  ) : (
+                    <BsChevronDown className="ml-2 text-gray-400" />
                   )}
+                </button>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    <div className="bg-blackish border border-sky-500/20 p-3 rounded">
-                      <p className="text-gray-500 text-xs mb-1">Budget</p>
-                      <p className="text-sky-300 text-sm font-semibold">{version.budget} sats</p>
+                {open && (
+                  <div className="border-t border-white/10 px-3 py-3 space-y-3">
+                    {version.topics && version.topics.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {version.topics.map((topic, idx) => (
+                          <span
+                            key={idx}
+                            className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-gray-200"
+                          >
+                            #{topic}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="rounded-lg border border-white/10 bg-black/40 px-2.5 py-2">
+                        <p className="mb-0.5 text-[10px] text-gray-500">Budget</p>
+                        <p className="text-[12px] font-semibold text-bitcoin">
+                          {version.budget} sats
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-white/10 bg-black/40 px-2.5 py-2">
+                        <p className="mb-0.5 text-[10px] text-gray-500">Timeline</p>
+                        <p className="text-[12px] font-semibold text-gray-200">
+                          {version.timeline} months
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-white/10 bg-black/40 px-2.5 py-2">
+                        <p className="mb-0.5 text-[10px] text-gray-500">Status</p>
+                        <p
+                          className={`text-[12px] font-semibold ${
+                            version.status === "open"
+                              ? "text-green-400"
+                              : version.status === "assigned"
+                              ? "text-yellow-300"
+                              : version.status === "in-progress"
+                              ? "text-blue-400"
+                              : version.status === "completed"
+                              ? "text-purple-400"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          {version.status}
+                        </p>
+                      </div>
                     </div>
-                    <div className="bg-blackish border border-sky-500/20 p-3 rounded">
-                      <p className="text-gray-500 text-xs mb-1">Timeline</p>
-                      <p className="text-sky-300 text-sm font-semibold">
-                        {version.timeline} months
-                      </p>
-                    </div>
-                    <div className="bg-blackish border border-sky-500/20 p-3 rounded">
-                      <p className="text-gray-500 text-xs mb-1">Status</p>
-                      <p
-                        className={`text-sm font-semibold ${
-                          version.status === "open"
-                            ? "text-green-400"
-                            : version.status === "assigned"
-                            ? "text-yellow-400"
-                            : version.status === "in-progress"
-                            ? "text-blue-400"
-                            : version.status === "completed"
-                            ? "text-purple-400"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        {version.status}
-                      </p>
+
+                    <div className="prose prose-invert prose-sm max-w-none">
+                      <RichTextViewer content={version.content} />
                     </div>
                   </div>
-
-                  {/* Content */}
-                  <div className="prose prose-invert prose-sm max-w-none">
-                    <RichTextViewer content={version.content} />
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BsCurrencyBitcoin } from "react-icons/bs";
 import { publishComment } from "../../utils/nostr";
+import { useToast } from "../../context/ToastContext";
 
 interface CommentInputProps {
   moonshotId: string;
@@ -34,6 +35,7 @@ function CommentInput({
 
   const handleSubmit = async () => {
     if (!content.trim() || isSubmitting) return;
+    const { showToast } = useToast();
 
     try {
       setIsSubmitting(true);
@@ -57,7 +59,7 @@ function CommentInput({
       onSuccess();
     } catch (error) {
       console.error("Failed to publish comment:", error);
-      alert("Failed to post comment. Please try again.");
+      showToast("Failed to post comment. Please try again", "error");
     } finally {
       setIsSubmitting(false);
     }

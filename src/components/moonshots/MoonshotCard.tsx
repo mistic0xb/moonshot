@@ -67,7 +67,7 @@ function MoonshotCard({ moonshot, onClick }: MoonshotCardProps) {
             className="w-8 h-8 rounded-full border border-white/10 object-cover"
           />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-bitcoin to-nostr flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-linear-to-tr from-bitcoin to-nostr flex items-center justify-center">
             <span className="text-white text-xs font-bold">
               {moonshot.creatorPubkey.slice(0, 2).toUpperCase()}
             </span>

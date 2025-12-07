@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Moonshot } from "../../types/types";
 import { publishNostrShare } from "../../utils/nostr";
 import { BsLink, BsShare, BsX } from "react-icons/bs";
+import { useToast } from "../../context/ToastContext";
 
 interface ShareButtonProps {
   moonshot: Moonshot;
@@ -11,6 +12,7 @@ function ShareButton({ moonshot }: ShareButtonProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const { showToast } = useToast();
 
   const handleCopyLink = async () => {
     try {
@@ -19,7 +21,7 @@ function ShareButton({ moonshot }: ShareButtonProps) {
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy link:", error);
-      alert("Failed to copy link");
+      showToast("Failed to copy link", "error");
     }
   };
 
@@ -27,11 +29,11 @@ function ShareButton({ moonshot }: ShareButtonProps) {
     try {
       setSharing(true);
       await publishNostrShare(moonshot, window.location.href);
-      alert("Shared on Nostr successfully!");
+      showToast("Shared on Nostr successfully!", "success");
       setShowDialog(false);
     } catch (error) {
       console.error("Failed to share on Nostr:", error);
-      alert("Failed to share on Nostr. Please try again.");
+      showToast("Failed to share on Nostr. Please try again.", "error")
     } finally {
       setSharing(false);
     }

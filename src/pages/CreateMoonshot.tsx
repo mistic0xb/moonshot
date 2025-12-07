@@ -75,10 +75,6 @@ function CreateMoonshot() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-10 text-center">
-          <div className="inline-flex items-center space-x-2 rounded-full bg-white/5 px-4 py-1.5 border border-white/10 mb-4">
-            <span className="w-2 h-2 rounded-full bg-bitcoin animate-pulse" />
-            <span className="text-[11px] font-mono text-gray-300">Draft a new Moonshot</span>
-          </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
             Create Your <span className="gradient-text">Moonshot</span>
           </h1>

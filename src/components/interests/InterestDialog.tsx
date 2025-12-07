@@ -3,6 +3,7 @@ import { BsGithub, BsPlus, BsX } from "react-icons/bs";
 import { nip19 } from "nostr-tools";
 import type { ProofOfWorkLink } from "../../types/types";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 
 interface InterestDialogProps {
   moonshotEventId: string;
@@ -24,22 +25,23 @@ export function InterestDialog({
 
   const { userPubkey } = useAuth();
   const userNpub = userPubkey ? nip19.npubEncode(userPubkey) : "Not logged in";
+  const { showToast } = useToast();
 
   const handleAddLink = () => {
     if (!newLinkUrl.trim()) {
-      alert("Please enter a URL");
+      showToast("Please enter a url", "info");
       return;
     }
 
     try {
       new URL(newLinkUrl);
     } catch {
-      alert("Please enter a valid URL");
+      showToast("Please enter a vaild URL", "info");
       return;
     }
 
     if (proofLinks.length >= 10) {
-      alert("Maximum 10 proof-of-work links allowed");
+      showToast("Maximum 10 proof-of-work links allowed", "info");
       return;
     }
 
@@ -61,12 +63,12 @@ export function InterestDialog({
 
   const handleSubmit = async () => {
     if (!message.trim()) {
-      alert("Please enter a message");
+      showToast("Please enter a message", "info");
       return;
     }
 
     if (message.length < 10) {
-      alert("Please write a more detailed message (at least 10 characters)");
+      showToast("Please write a more detailed message (at least 10 characters)", "info");
       return;
     }
 

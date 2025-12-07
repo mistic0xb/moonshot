@@ -158,7 +158,7 @@ A brief description of what your project does...
           <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-300">
             Live Preview
           </label>
-          <div className="min-h-[260px] rounded-2xl border border-white/10 bg-black/40 p-4 prose prose-invert max-w-none break-words">
+          <div className="min-h-[260px] rounded-2xl border border-white/10 bg-black/40 p-4 prose prose-invert max-w-none wrap-break-words">
             <ReactMarkdown
               components={{
                 h1: ({ children }) => (

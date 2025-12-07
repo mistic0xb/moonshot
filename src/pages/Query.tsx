@@ -17,6 +17,7 @@ import {
   fetchMoonshotVersions,
   fetchComments,
 } from "../utils/nostr";
+import { useToast } from "../context/ToastContext";
 
 function Query() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,8 @@ function Query() {
   const [loadingInterests, setLoadingInterests] = useState(true);
   const [loadingVersions, setLoadingVersions] = useState(true);
   const [showInterestDialog, setShowInterestDialog] = useState(false);
+
+  const { showToast } = useToast();
 
   useEffect(() => {
     const loadMoonshot = async () => {
@@ -88,7 +91,7 @@ function Query() {
     if (!isAuthenticated) {
       document.dispatchEvent(new CustomEvent("nlLaunch", { detail: "welcome-login" }));
     } else if (userPubkey && interests.some(i => i.builderPubkey === userPubkey)) {
-      alert("You have already shown interest.");
+      showToast("You have already shown interest.", "info");
     } else {
       setShowInterestDialog(true);
     }
@@ -112,7 +115,7 @@ function Query() {
       );
 
       setShowInterestDialog(false);
-      alert("Interest submitted successfully!");
+      showToast("Interest submitted successfullY!", "success");
 
       const updatedInterests = await fetchInterests(moonshot.creatorPubkey, moonshot.id);
       setInterests(updatedInterests);
@@ -131,7 +134,7 @@ function Query() {
       setUserProfiles(profileMap);
     } catch (error) {
       console.error("Failed to submit interest:", error);
-      alert("Failed to submit interest. Please try again.");
+      showToast("Failed to submit interest. Please try again");
     }
   }
 
@@ -278,7 +281,7 @@ function Query() {
 
             {/* Right Column */}
             <div className="lg:col-span-1">
-              <div className="bg-card/70 border border-white/5 rounded-2xl p-6 space-y-6 lg:sticky lg:top-24 ">
+              <div className="bg-card/70 border border-white/5 rounded-2xl p-6 space-y-6 lg:sticky lg:top-24">
                 <div className=" scrollbar-thin">
                   <h2 className="text-lg sm:text-xl font-bold text-white mb-4">
                     Interested Builders ({interests.length})
@@ -296,7 +299,7 @@ function Query() {
                       <p className="text-gray-500 text-xs">Be the first to show interest.</p>
                     </div>
                   ) : (
-                    <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
+                    <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
                       {interests.map(interest => {
                         const profile = userProfiles.get(interest.builderPubkey);
                         return (
@@ -312,7 +315,7 @@ function Query() {
                                   className="w-9 h-9 rounded-full border border-white/10 object-cover"
                                 />
                               ) : (
-                                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-bitcoin to-nostr flex items-center justify-center text-xs font-bold text-white">
+                                <div className="w-9 h-9 rounded-full bg-linear-to-tr from-bitcoin to-nostr flex items-center justify-center text-xs font-bold text-white">
                                   {interest.builderPubkey.slice(0, 2).toUpperCase()}
                                 </div>
                               )}

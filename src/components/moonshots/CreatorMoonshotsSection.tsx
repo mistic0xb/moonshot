@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useNavigate } from "react-router";
 import MoonshotCard from "./MoonshotCard";
-import MoonshotDetailView from "./MoonshotDetailView";
 import type { Moonshot } from "../../types/types";
 
 interface CreatorMoonshotsSectionProps {
@@ -9,13 +8,11 @@ interface CreatorMoonshotsSectionProps {
 }
 
 function CreatorMoonshotsSection({ moonshots, loading }: CreatorMoonshotsSectionProps) {
-  const [selectedMoonshot, setSelectedMoonshot] = useState<Moonshot | null>(null);
+  const navigate = useNavigate();
 
-  if (selectedMoonshot) {
-    return (
-      <MoonshotDetailView moonshot={selectedMoonshot} onBack={() => setSelectedMoonshot(null)} />
-    );
-  }
+  const handleMoonshotClick = (moonshot: Moonshot) => {
+    navigate(`/dashboard/${moonshot.id}`);
+  };
 
   return (
     <section className="space-y-6">
@@ -53,7 +50,7 @@ function CreatorMoonshotsSection({ moonshots, loading }: CreatorMoonshotsSection
             <MoonshotCard
               key={moonshot.id}
               moonshot={moonshot}
-              onClick={() => setSelectedMoonshot(moonshot)}
+              onClick={() => handleMoonshotClick(moonshot)}
             />
           ))}
         </div>

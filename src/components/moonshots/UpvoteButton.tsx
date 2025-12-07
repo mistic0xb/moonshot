@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { checkUserUpvote, toggleUpvote, fetchUpvoteCount } from "../../utils/nostr";
 import { FiHeart } from "react-icons/fi";
+import { useToast } from "../../context/ToastContext";
 
 interface UpvoteButtonProps {
   moonshotId: string;
@@ -13,6 +14,7 @@ function UpvoteButton({ moonshotId, creatorPubkey }: UpvoteButtonProps) {
   const [count, setCount] = useState(0);
   const [hasUpvoted, setHasUpvoted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const loadUpvoteData = async () => {
@@ -49,7 +51,7 @@ function UpvoteButton({ moonshotId, creatorPubkey }: UpvoteButtonProps) {
       setCount(prev => (hasUpvoted ? prev - 1 : prev + 1));
     } catch (error) {
       console.error("Failed to toggle upvote:", error);
-      alert("Failed to upvote. Please try again.");
+      showToast("Failed to upvote. Please try again.");
     } finally {
       setLoading(false);
     }
