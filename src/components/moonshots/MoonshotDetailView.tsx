@@ -160,7 +160,7 @@ function MoonshotDetailView({
           <div className="mb-5 flex flex-row gap-3 items-center justify-between">
             <button
               onClick={onBack}
-              className="inline-flex items-center gap-2 text-xs font-medium text-gray-300 hover:text-white transition-colors"
+              className="inline-flex items-center gap-2 text-xs font-medium text-gray-300 hover:text-white transition-colors cursor-pointer"
             >
               <BsArrowLeft className="text-sm" />
               <span>Back to Dashboard</span>
@@ -169,14 +169,14 @@ function MoonshotDetailView({
             <div className="flex gap-2">
               <button
                 onClick={() => setShowEditDialog(true)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3.5 py-1.5 text-xs font-medium text-gray-200 hover:bg-white/10 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3.5 py-1.5 text-xs font-medium text-gray-200 hover:bg-white/10 transition-colors cursor-pointer"
               >
-                <BsPencil className="text-md" size={14} />
+                <BsPencil size={14} />
                 <span className="sm:block hidden">Edit</span>
               </button>
               <button
                 onClick={() => setShowDeleteDialog(true)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-red-500/90 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-red-400 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-full bg-red-500/90 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-red-400 transition-colors cursor-pointer"
               >
                 <BsTrash2 size={14} />
                 <span className="sm:block hidden">Remove</span>
