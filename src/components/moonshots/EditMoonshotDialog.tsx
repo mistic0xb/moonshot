@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BsPlus } from "react-icons/bs";
 import type { Moonshot } from "../../types/types";
 import { useToast } from "../../context/ToastContext";
+import { FiX } from "react-icons/fi";
 
 interface EditMoonshotDialogProps {
   moonshot: Moonshot;
@@ -72,9 +73,9 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
         <button
           onClick={onClose}
           disabled={submitting}
-          className="absolute right-4 top-4 rounded-full bg-white/5 px-2 py-1 text-gray-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50 cursor-pointer"
+          className="absolute right-4 top-4 rounded-full bg-white/5 px-2 py-2 text-gray-400 hover:bg-white/10 hover:text-white transition-colors disabled:opacity-50 cursor-pointer"
         >
-          ×
+          <FiX size={14} />
         </button>
 
         <h2 className="mb-1 text-xl sm:text-2xl font-bold text-white">Edit Moonshot</h2>
