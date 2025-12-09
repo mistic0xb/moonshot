@@ -7,7 +7,7 @@ import Query from "./pages/Query";
 import Dashboard from "./pages/Dashboard";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
-import MoonshotCreatorPage from "./pages/Edit";
+import MoonshotCreatorPage from "./pages/MoonshotCreatorPage";
 
 function App() {
   return (
