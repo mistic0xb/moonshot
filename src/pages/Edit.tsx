@@ -4,7 +4,7 @@ import MoonshotDetailView from "../components/moonshots/MoonshotDetailView";
 import type { Moonshot } from "../types/types";
 import { fetchMoonshotById } from "../utils/nostr";
 
-function Edit() {
+function MoonshotCreatorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [moonshot, setMoonshot] = useState<Moonshot | null>(null);
@@ -82,4 +82,4 @@ function Edit() {
   );
 }
 
-export default Edit;
+export default MoonshotCreatorPage;

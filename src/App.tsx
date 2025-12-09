@@ -6,8 +6,8 @@ import Explore from "./pages/Explore";
 import Query from "./pages/Query";
 import Dashboard from "./pages/Dashboard";
 import { AuthProvider } from "./context/AuthContext";
-import Edit from "./pages/Edit";
 import { ToastProvider } from "./context/ToastContext";
+import MoonshotCreatorPage from "./pages/Edit";
 
 function App() {
   return (
@@ -22,7 +22,7 @@ function App() {
               <Route path="/explore" element={<Explore />} />
               <Route path="/moonshot/:id" element={<Query />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/dashboard/:id" element={<Edit />} />
+              <Route path="/dashboard/:id" element={<MoonshotCreatorPage />} />
             </Routes>
           </div>
         </Router>
