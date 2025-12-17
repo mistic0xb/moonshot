@@ -30,6 +30,32 @@ export interface Interest {
     createdAt: number;
 }
 
+type DayOfMonth = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25;
+type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export interface Monthly {
+    type: "monthly";
+    duration: 3 | 6 | 9;
+    releaseDay: DayOfMonth;
+}
+
+export interface Weekly {
+    type: "weekly"
+    duration: 4 | 8 | 12;
+    releaseDay: Weekday;
+}
+
+// Angor Project Types
+export type FundPattern = Monthly | Weekly;
+
+export interface AngorProjectExport {
+    moonshot: Moonshot;
+    projectType: "fund";
+    selectedBuilderPubkey: string; // Builder's pubkey
+    penaltyThreshold: string; // 1M sats
+    fundingPattern: FundPattern; // Array of stages with percentages
+}
+
 export interface WindowNostr {
     getPublicKey(): Promise<string>;
     signEvent(event: any): Promise<any>;

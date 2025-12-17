@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import MoonshotCreatorPage from "./pages/MoonshotCreatorPage";
+import CreateAngorProject from "./pages/CreateAngorProject";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
               <Route path="/moonshot/:id" element={<Query />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/:id" element={<MoonshotCreatorPage />} />
+              <Route path="/create-angor-project" element={<CreateAngorProject />} />
             </Routes>
           </div>
         </Router>

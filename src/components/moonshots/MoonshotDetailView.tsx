@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { BsArrowLeft, BsPencil, BsTrash2, BsPencilSquare } from "react-icons/bs";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
+import { BsArrowLeft, BsPencil, BsTrash2, BsPencilSquare, BsChevronDown } from "react-icons/bs";
 import { FiHeart } from "react-icons/fi";
 import BuilderInfoCard from "./../builder/BuilderInfoCard";
 import type { Moonshot, Interest, Comment } from "../../types/types";
@@ -17,6 +18,7 @@ import ShareButton from "./ShareButton";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import MoonshotVersionHistory from "./MoonshotVersionHistory";
 import CommentSection from "../comments/CommentSection";
+import SelectBuilderConfirmDialog from "./SelectBuilderConfirmDialog";
 import { useToast } from "../../context/ToastContext";
 
 interface MoonshotDetailViewProps {
@@ -32,6 +34,7 @@ function MoonshotDetailView({
   onMoonshotUpdate,
   onMoonshotDeleted,
 }: MoonshotDetailViewProps) {
+  const navigate = useNavigate();
   const [interests, setInterests] = useState<Interest[]>([]);
   const [upvoteCount, setUpvoteCount] = useState(0);
   const [versions, setVersions] = useState<Moonshot[]>([]);
@@ -43,13 +46,17 @@ function MoonshotDetailView({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentMoonshot, setCurrentMoonshot] = useState<Moonshot>(moonshot);
+  const [showBuilderDropdown, setShowBuilderDropdown] = useState(false);
+  const [selectedBuilder, setSelectedBuilder] = useState<Interest | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { showToast } = useToast();
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Fetch interests, upvotes, and versions
         const [fetchedInterests, upvotes, fetchedVersions, fetchedComments] = await Promise.all([
           fetchInterests(currentMoonshot.id, currentMoonshot.creatorPubkey),
           fetchUpvoteCount(currentMoonshot.id, currentMoonshot.creatorPubkey),
@@ -74,7 +81,19 @@ function MoonshotDetailView({
     };
 
     loadData();
-  }, [currentMoonshot.id, currentMoonshot.eventId]);
+  }, [currentMoonshot.creatorPubkey, currentMoonshot.id]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowBuilderDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleEditMoonshot = async (updatedData: {
     title: string;
@@ -85,7 +104,6 @@ function MoonshotDetailView({
     status: string;
   }) => {
     try {
-      // Update the moonshot event - pass current and new data
       await updateMoonshot(
         currentMoonshot.id,
         currentMoonshot.creatorPubkey,
@@ -105,27 +123,23 @@ function MoonshotDetailView({
         updatedData.status
       );
 
-      // Update local state
       const updatedMoonshot = {
         ...currentMoonshot,
         ...updatedData,
       };
       setCurrentMoonshot(updatedMoonshot);
 
-      // Refresh version history after edit
       const fetchedVersions = await fetchMoonshotVersions(
         currentMoonshot.id,
         currentMoonshot.creatorPubkey
       );
       setVersions(fetchedVersions);
 
-      // Notify parent component if needed
       if (onMoonshotUpdate) {
         onMoonshotUpdate(updatedMoonshot);
       }
 
       setShowEditDialog(false);
-
       showToast("Moonshot updated successfully!", "success");
     } catch (error) {
       console.error("Failed to update moonshot:", error);
@@ -139,7 +153,6 @@ function MoonshotDetailView({
       await removeMoonshot(currentMoonshot);
       setShowDeleteDialog(false);
 
-      // Call the callback and go back
       if (onMoonshotDeleted) {
         onMoonshotDeleted();
       }
@@ -149,6 +162,24 @@ function MoonshotDetailView({
       showToast("Failed to delete moonshot. Please try again", "error");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleSelectBuilder = (builder: Interest) => {
+    setSelectedBuilder(builder);
+    setShowBuilderDropdown(false);
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmBuilderSelection = () => {
+    if (selectedBuilder) {
+      // Navigate to create angor project page with builder info
+      navigate("/create-angor-project", {
+        state: {
+          moonshot: currentMoonshot,
+          selectedBuilder: selectedBuilder,
+        },
+      });
     }
   };
 
@@ -200,6 +231,55 @@ function MoonshotDetailView({
               </div>
               <div className="flex items-center gap-2 text-xs text-gray-300">
                 <ShareButton moonshot={moonshot} />
+
+                {/* Select Builder Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setShowBuilderDropdown(!showBuilderDropdown)}
+                    disabled={interests.length === 0}
+                    className={`inline-flex items-center gap-1.5 rounded-full bg-bitcoin/90 px-3 py-1.5 text-xs font-medium text-black transition-colors ${
+                      interests.length === 0
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-bitcoin cursor-pointer"
+                    }`}
+                  >
+                    <span>Select Builder</span>
+                    <BsChevronDown
+                      className={`text-xs transition-transform ${
+                        showBuilderDropdown ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {showBuilderDropdown && interests.length > 0 && (
+                    <div className="absolute right-0 mt-2 w-64 rounded-xl border border-white/10 bg-card shadow-xl z-10 max-h-80 overflow-y-auto">
+                      <div className="p-2">
+                        {interests.map(interest => (
+                          <button
+                            key={interest.id}
+                            onClick={() => handleSelectBuilder(interest)}
+                            className="w-full flex items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-white/5"
+                          >
+                            <img
+                              src={interest.builderPubkey || "/default-avatar.png"}
+                              className="h-10 w-10 rounded-full object-cover"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-white truncate">
+                                {interest.builderPubkey || "Anonymous"}
+                              </p>
+                              <p className="text-xs text-gray-400 truncate">
+                                {interest.builderPubkey?.slice(0, 16)}...
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1">
                   <FiHeart className="text-red-400 text-sm" />
                   <span className="font-semibold">{upvoteCount}</span>
@@ -324,6 +404,16 @@ function MoonshotDetailView({
           onConfirm={handleConfirmDelete}
           onCancel={() => setShowDeleteDialog(false)}
           isDeleting={isDeleting}
+        />
+      )}
+      {showConfirmDialog && selectedBuilder && (
+        <SelectBuilderConfirmDialog
+          builder={selectedBuilder}
+          onConfirm={handleConfirmBuilderSelection}
+          onCancel={() => {
+            setShowConfirmDialog(false);
+            setSelectedBuilder(null);
+          }}
         />
       )}
     </>

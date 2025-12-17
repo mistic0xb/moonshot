@@ -1,7 +1,6 @@
 export const DEFAULT_RELAYS = [
-  "wss://relay.damus.io",
-  "wss://nos.lol",
-  "wss://relay.snort.social"
+  "wss://relay.angor.io/",
+  "wss://relay2.angor.io",
 ];
 
 export const MOONSHOT_FEE = 1000; // 1k sats

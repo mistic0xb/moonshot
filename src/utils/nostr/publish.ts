@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getPool } from './pool';
 import { DEFAULT_RELAYS } from './relayConfig';
-import type { Moonshot, ProofOfWorkLink } from '../../types/types';
+import type { AngorProjectExport, Moonshot, ProofOfWorkLink } from '../../types/types';
+import type { Event } from 'nostr-tools';
 
 // Publish moonshot event (kind 30078)
 export async function publishMoonshot(
@@ -285,4 +286,51 @@ export async function publishNostrShare(
     ]);
 
     console.log("Moonshot shared on Nostr successfully");
+}
+
+// Publish Angor project export event (kind 30078)
+export async function publishAngorProject(
+    projectData: AngorProjectExport
+): Promise<string> {
+    if (!window.nostr) {
+        throw new Error("Nostr extension not found");
+    }
+
+    const pool = getPool();
+
+    // Build tags array
+    const eventTags = [
+        ["t", "moonshot-angor-export"],
+        ["e", projectData.moonshot.eventId], // Reference to moonshot event ID
+    ];
+
+    // Store complete project data including stages as JSON in content
+    const contentData: AngorProjectExport = {
+        moonshot: projectData.moonshot,
+        projectType: "fund",
+        selectedBuilderPubkey: projectData.selectedBuilderPubkey,
+        penaltyThreshold: projectData.penaltyThreshold,
+        fundingPattern: projectData.fundingPattern
+    };
+
+    const event = {
+        kind: 30078,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: eventTags,
+        content: JSON.stringify(contentData),
+    };
+
+    console.log("Publishing Angor project export:", event);
+
+    const signedEvent: Event = await window.nostr.signEvent(event);
+    const pubs = pool.publish(DEFAULT_RELAYS, signedEvent);
+
+    await Promise.race([
+        Promise.all(pubs),
+        new Promise(resolve => setTimeout(resolve, 5000))
+    ]);
+
+    // console.log("Angor project exported with ID:", angorProjectId);
+    console.log("Angor project exported with EVENT ID:", signedEvent.id);
+    return signedEvent.id;
 }
