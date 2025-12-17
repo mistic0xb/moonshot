@@ -88,7 +88,7 @@ function CreateMoonshot() {
           {/* Title */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-gray-300 mb-2">
-              Project Title *
+              Moonshot Title *
             </label>
             <input
               type="text"

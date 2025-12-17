@@ -21,12 +21,16 @@ function Home() {
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight">
-              Turn Ambition into <br />
-              <span className="gradient-text">Reality</span>
+              Moonshot your <br />
+              <span className="gradient-text">Idea</span>
             </h1>
 
             <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Connect visionaries with builders in a trustless economy. Verify reputation on Nostr.
+              moonshot is a platform where you can just post/moonshot your idea, find interested builder &
+              fund them, securely using{" "}
+              <span className="text-green-700">
+                <a href="https://angor.io" target="_blank">angor</a>
+              </span>
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-16">
@@ -34,7 +38,7 @@ function Home() {
                 onClick={() => navigate("/create")}
                 className="group w-full sm:w-auto bg-bitcoin hover:bg-orange-400 text-black font-semibold py-3 px-8 text-sm md:text-base rounded-full tracking-wide transition-all duration-300 hover:shadow-[0_0_35px_rgba(247,147,26,0.5)] flex items-center justify-center gap-2 cursor-pointer"
               >
-                Start Building
+                Create Moonshot
                 <BsRocket className="group-hover:translate-x-1 transition-transform" />
               </button>
 
