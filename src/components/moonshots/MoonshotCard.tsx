@@ -70,10 +70,11 @@ function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
             className="w-8 h-8 rounded-full border border-white/10 object-cover"
           />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-linear-to-tr from-bitcoin to-nostr flex items-center justify-center">
-            <span className="text-white text-xs font-bold">
-              {moonshot.creatorPubkey.slice(0, 2).toUpperCase()}
-            </span>
+          <div className="flex items-center justify-center">
+            <img
+              src={"/src/assets/default-avatar.jpg"}
+              className="w-8 h-8 rounded-full border border-white/10 object-cover"
+            />
           </div>
         )}
         <span className="text-gray-400 text-sm font-medium">

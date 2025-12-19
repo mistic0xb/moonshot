@@ -8,7 +8,6 @@ import type {
   Interest,
   Comment,
   UserProfile,
-  ExportedStatus,
 } from "../../types/types";
 import {
   fetchInterests,
@@ -27,12 +26,10 @@ import MoonshotVersionHistory from "./MoonshotVersionHistory";
 import CommentSection from "../comments/CommentSection";
 import SelectBuilderConfirmDialog from "./SelectBuilderConfirmDialog";
 import { useToast } from "../../context/ToastContext";
-import { useAuth } from "../../context/AuthContext";
-import { fetchExportedMoonshots } from "../../utils/nostr/fetchMoonshots";
+import { useExportedMoonshots } from "../../context/ExportedMoonshotContext";
 
 interface MoonshotDetailViewProps {
   moonshot: Moonshot;
-  isExported: boolean;
   onBack: () => void;
   onMoonshotUpdate?: (updatedMoonshot: Moonshot) => void;
   onMoonshotDeleted?: () => void;
@@ -60,8 +57,9 @@ function MoonshotDetailView({
   const [selectedBuilder, setSelectedBuilder] = useState<UserProfile | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [interestedUsersMetadata, setInterestedUserMetadata] = useState<UserProfile[]>([]);
-  const { userPubkey } = useAuth();
-  const [exportedStatus, setExportedStatus] = useState<ExportedStatus>();
+  const { getExportStatus } = useExportedMoonshots();
+  const exportedStatus = getExportStatus(currentMoonshot.eventId);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { showToast } = useToast();
@@ -125,43 +123,6 @@ function MoonshotDetailView({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    const checkExported = async () => {
-      if (!userPubkey || !moonshot?.eventId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const exportedMap = await fetchExportedMoonshots(userPubkey);
-
-        const exported = exportedMap.get(moonshot.eventId);
-
-        if (exported) {
-          setExportedStatus({
-            isExported: true,
-            exportEventId: exported.exportEventId,
-          });
-        } else {
-          setExportedStatus({
-            isExported: false,
-            exportEventId: null,
-          });
-        }
-      } catch (error) {
-        console.error("Failed to check export status:", error);
-        setExportedStatus({
-          isExported: false,
-          exportEventId: null,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkExported();
-  }, [userPubkey, moonshot?.eventId]);
 
   const handleEditMoonshot = async (updatedData: {
     title: string;

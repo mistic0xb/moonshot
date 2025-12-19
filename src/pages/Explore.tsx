@@ -3,12 +3,14 @@ import { useNavigate } from "react-router";
 import MoonshotCard from "../components/moonshots/MoonshotCard";
 import type { Moonshot } from "../types/types";
 import { fetchAllMoonshots } from "../utils/nostr";
+import { useExportedMoonshots } from "../context/ExportedMoonshotContext";
 
 function Explore() {
   const navigate = useNavigate();
   const [moonshots, setMoonshots] = useState<Moonshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const { isExported } = useExportedMoonshots();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,13 +106,17 @@ function Explore() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {moonshots.map(moonshot => (
-              <MoonshotCard
-                key={moonshot.id}
-                moonshot={moonshot}
-                onClick={() => navigate(`/moonshot/${moonshot.id}`)}
-              />
-            ))}
+            {moonshots.map(moonshot => {
+              const exported = isExported(moonshot.eventId);
+              return (
+                <MoonshotCard
+                  key={moonshot.id}
+                  moonshot={moonshot}
+                  isExported={exported}
+                  onClick={() => navigate(`/moonshot/${moonshot.id}`)}
+                />
+              );
+            })}
           </div>
         )}
       </div>
