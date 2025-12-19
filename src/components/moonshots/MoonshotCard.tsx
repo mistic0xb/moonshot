@@ -6,10 +6,11 @@ import { fetchUpvoteCount, fetchInterests, fetchUserProfile } from "../../utils/
 
 interface MoonshotCardProps {
   moonshot: Moonshot;
+  isExported: boolean;
   onClick: () => void;
 }
 
-function MoonshotCard({ moonshot, onClick }: MoonshotCardProps) {
+function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
   const [upvoteCount, setUpvoteCount] = useState(0);
   const [interestCount, setInterestCount] = useState(0);
   const [creatorProfile, setCreatorProfile] = useState<UserProfile | null>(null);
@@ -38,6 +39,7 @@ function MoonshotCard({ moonshot, onClick }: MoonshotCardProps) {
     open: "bg-green-500/10 border-green-500/30 text-green-400",
     "in-progress": "bg-bitcoin/10 border-bitcoin/30 text-bitcoin",
     completed: "bg-nostr/10 border-nostr/30 text-purple-400",
+    exported: "bg-bitcoin/10 border-bitcoin/40 text-bitcoin",
   };
 
   return (
@@ -46,14 +48,15 @@ function MoonshotCard({ moonshot, onClick }: MoonshotCardProps) {
       className="group relative bg-card/60 border border-white/5 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:border-bitcoin/40 hover:bg-card/80 hover:shadow-[0_0_40px_rgba(247,147,26,0.08)]"
     >
       {/* Status Badge */}
-      {moonshot.status && (
+      {(moonshot.status || isExported) && (
         <div className="absolute top-4 right-4">
           <span
             className={`px-3 py-1 text-xs font-medium rounded-full border ${
-              statusStyles[moonshot.status] || "bg-white/5 border-white/10 text-gray-400"
+              statusStyles[isExported ? "exported" : moonshot.status] ||
+              "bg-white/5 border-white/10 text-gray-400"
             }`}
           >
-            {moonshot.status}
+            {isExported ? "Exported to Angor" : moonshot.status}
           </span>
         </div>
       )}

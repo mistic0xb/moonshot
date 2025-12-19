@@ -3,11 +3,11 @@ import { useLocation, useNavigate } from "react-router";
 import { BsArrowLeft, BsInfoCircle } from "react-icons/bs";
 import type {
   Moonshot,
-  Interest,
   AngorProjectExport,
   FundPattern,
   Monthly,
   Weekly,
+  UserProfile,
 } from "../types/types";
 import { publishAngorProject } from "../utils/nostr/publish";
 import { useToast } from "../context/ToastContext";
@@ -30,7 +30,7 @@ function CreateAngorProject() {
   const { moonshot, selectedBuilder } =
     (location.state as {
       moonshot: Moonshot;
-      selectedBuilder: Interest;
+      selectedBuilder: UserProfile;
     }) || {};
 
   const [patternType, setPatternType] = useState<"monthly" | "weekly">("monthly");
@@ -40,6 +40,7 @@ function CreateAngorProject() {
   const [weeklyDay, setWeeklyDay] = useState<number>(1);
   const [isExporting, setIsExporting] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [exportedEventId, setExportedEventId] = useState<string | null>(null);
 
   if (!moonshot || !selectedBuilder) {
     return (
@@ -82,19 +83,15 @@ function CreateAngorProject() {
       const projectData: AngorProjectExport = {
         moonshot: moonshot,
         projectType: "fund",
-        selectedBuilderPubkey: selectedBuilder.builderPubkey,
+        selectedBuilderPubkey: selectedBuilder.pubkey,
         penaltyThreshold: "1000000", // 1M sats
         fundingPattern: fundingPattern,
       };
 
       const eventId = await publishAngorProject(projectData);
       console.log("ANGOR EXPORT: ", eventId);
-
       showToast("Project exported to Angor successfully!", "success");
-
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1500);
+      setExportedEventId(eventId);
     } catch (error) {
       console.error("Failed to export project:", error);
       showToast("Failed to export project. Please try again.", "error");
@@ -323,16 +320,16 @@ function CreateAngorProject() {
                 <p className="text-xs text-gray-500 mb-2">Selected Builder</p>
                 <div className="flex items-center gap-3">
                   <img
-                    src={selectedBuilder.builderPubkey || "/default-avatar.png"}
-                    alt={selectedBuilder.builderPubkey || "Builder"}
+                    src={selectedBuilder.picture || "src/assets/default-avatar.jpg"}
+                    alt={selectedBuilder.name || "Builder"}
                     className="h-10 w-10 rounded-full object-cover"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-white truncate">
-                      {selectedBuilder.builderPubkey || "Anonymous Builder"}
+                      {selectedBuilder.name || "Anonymous Builder"}
                     </p>
                     <p className="text-xs text-gray-400 truncate">
-                      {selectedBuilder.builderPubkey?.slice(0, 16)}...
+                      {selectedBuilder.pubkey?.slice(0, 16)}...
                     </p>
                   </div>
                 </div>
@@ -382,10 +379,27 @@ function CreateAngorProject() {
                 </div>
               </div>
 
+              {/* EventId */}
+              {exportedEventId && (
+                <div className="mb-4 rounded-xl border border-green-500/30 bg-green-500/10 p-4">
+                  <p className="text-sm font-semibold text-green-400 mb-2">
+                    Angor project exported successfully
+                  </p>
+                  <p className="text-xs text-gray-300 mb-2">
+                    Import your project on Angor by pasting this Event ID in the
+                    <span className="font-medium text-white"> Create Project </span>
+                    section.
+                  </p>
+                  <code className="block w-full break-all rounded-lg bg-black/60 p-2 text-xs text-green-300">
+                    {exportedEventId}
+                  </code>
+                </div>
+              )}
+
               {/* Export Button */}
               <button
                 onClick={handleExportToAngor}
-                disabled={isExporting}
+                disabled={isExporting || !!exportedEventId}
                 className="w-full rounded-lg bg-bitcoin px-4 py-3 text-sm font-medium text-black transition-colors hover:bg-bitcoin/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isExporting ? (
@@ -393,8 +407,10 @@ function CreateAngorProject() {
                     <div className="h-4 w-4 rounded-full border-2 border-black/20 border-t-black animate-spin" />
                     Exporting...
                   </span>
+                ) : exportedEventId ? (
+                  "Exported"
                 ) : (
-                  "Publish to Angor"
+                  "Export To Angor"
                 )}
               </button>
             </div>

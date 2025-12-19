@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import CreatorMoonshotsSection from "../components/moonshots/CreatorMoonshotsSection";
 import InterestedMoonshotsSection from "../components/moonshots/InterestedMoonshotsSection";
-import type { Moonshot, Interest } from "../types/types";
+import type { Moonshot, Interest, ExportedMoonshot } from "../types/types";
 import { fetchAllMoonshotsByCreator, fetchUserInterests } from "../utils/nostr";
+import { fetchExportedMoonshots } from "../utils/nostr/fetchMoonshots";
 
 function Dashboard() {
   const { userPubkey } = useAuth();
@@ -11,6 +12,9 @@ function Dashboard() {
   const [myInterests, setMyInterests] = useState<Interest[]>([]);
   const [loadingMoonshots, setLoadingMoonshots] = useState(true);
   const [loadingInterests, setLoadingInterests] = useState(true);
+  const [exportedMoonshots, setExportedMoonshots] = useState<Map<string, ExportedMoonshot>>(
+    new Map()
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,6 +44,17 @@ function Dashboard() {
     };
 
     fetchData();
+  }, [userPubkey]);
+
+  useEffect(() => {
+    if (!userPubkey) return;
+
+    const loadData = async () => {
+      const res = await fetchExportedMoonshots(userPubkey!);
+      console.log("EXPORTED MOONSHOTS MAP:", res);
+      setExportedMoonshots(res);
+    };
+    loadData();
   }, [userPubkey]);
 
   if (!userPubkey) {
@@ -83,7 +98,11 @@ function Dashboard() {
         {/* Sections */}
         <div className="space-y-8">
           <div className="rounded-2xl border border-white/10 bg-card/80 p-4 sm:p-6">
-            <CreatorMoonshotsSection moonshots={myMoonshots} loading={loadingMoonshots} />
+            <CreatorMoonshotsSection
+              moonshots={myMoonshots}
+              exportedMoonshots={exportedMoonshots}
+              loading={loadingMoonshots}
+            />
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-card/80 p-4 sm:p-6">

@@ -1,13 +1,18 @@
 import { useNavigate } from "react-router";
 import MoonshotCard from "./MoonshotCard";
-import type { Moonshot } from "../../types/types";
+import type { ExportedMoonshot, Moonshot } from "../../types/types";
 
 interface CreatorMoonshotsSectionProps {
   moonshots: Moonshot[];
+  exportedMoonshots: Map<string, ExportedMoonshot>;
   loading: boolean;
 }
 
-function CreatorMoonshotsSection({ moonshots, loading }: CreatorMoonshotsSectionProps) {
+function CreatorMoonshotsSection({
+  moonshots,
+  exportedMoonshots,
+  loading,
+}: CreatorMoonshotsSectionProps) {
   const navigate = useNavigate();
 
   const handleMoonshotClick = (moonshot: Moonshot) => {
@@ -46,13 +51,18 @@ function CreatorMoonshotsSection({ moonshots, loading }: CreatorMoonshotsSection
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {moonshots.map(moonshot => (
-            <MoonshotCard
-              key={moonshot.id}
-              moonshot={moonshot}
-              onClick={() => handleMoonshotClick(moonshot)}
-            />
-          ))}
+          {moonshots.map(moonshot => {
+            const isExported = exportedMoonshots.has(moonshot.eventId);
+
+            return (
+              <MoonshotCard
+                key={moonshot.id}
+                moonshot={moonshot}
+                isExported={isExported}
+                onClick={() => handleMoonshotClick(moonshot)}
+              />
+            );
+          })}
         </div>
       )}
     </section>

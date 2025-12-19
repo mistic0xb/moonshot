@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import type { Event, Filter } from "nostr-tools";
-import type { Moonshot } from "../../types/types";
+import type { ExportedMoonshot, Moonshot } from "../../types/types";
 import { getPool } from "./pool";
 import { DEFAULT_RELAYS } from "./relayConfig";
 // Fetch all moonshot events
@@ -284,4 +285,57 @@ export async function fetchMoonshotVersions(moonshotId: string, creatorPubkey: s
 export async function getVersionCount(moonshotId: string, creatorPubkey: string): Promise<number> {
     const versions = await fetchMoonshotVersions(moonshotId, creatorPubkey);
     return versions.length;
+}
+
+export async function fetchExportedMoonshots(
+  userPubkey: string
+): Promise<Map<string, ExportedMoonshot>> {
+  const pool = getPool();
+
+  return new Promise(resolve => {
+    const exportedMap = new Map<string, ExportedMoonshot>();
+    const seen = new Set<string>();
+    let sub: any;
+
+    const timeout = setTimeout(() => {
+      if (sub) sub.close();
+      resolve(exportedMap);
+    }, 5000);
+
+    const filter = {
+      kinds: [30078],
+      authors: [userPubkey],
+      "#t": ["moonshot-angor-export"],
+      limit: 100,
+    };
+
+    sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
+      onevent(event: Event) {
+        if (seen.has(event.id)) return;
+        seen.add(event.id);
+        try {
+          const moonshotEventTag = event.tags.find(
+            (t: string[]) => t[0] === "e"
+          );
+
+          if (!moonshotEventTag) return;
+
+          const moonshotEventId = moonshotEventTag[1];
+
+          exportedMap.set(moonshotEventId, {
+            exportEventId: event.id,
+            moonshotEventId,
+            exportedBy: event.pubkey,
+          });
+        } catch (err) {
+          console.error("Failed to parse exported moonshot:", err);
+        }
+      },
+      oneose() {
+        clearTimeout(timeout);
+        if (sub) sub.close();
+        resolve(exportedMap);
+      },
+    });
+  });
 }

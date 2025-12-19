@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Moonshot {
     id: string;
     eventId: string;
@@ -139,4 +140,15 @@ export interface Comment {
     parentCommentId?: string; // If reply, parent comment event ID
     createdAt: number;
     replies?: Comment[]; // For nested display
+}
+
+export type ExportedMoonshot = {
+  exportEventId: string;
+  moonshotEventId: string;
+  exportedBy: string;
+};
+
+export type ExportedStatus = {
+    isExported: boolean,
+  exportEventId: string | null;
 }

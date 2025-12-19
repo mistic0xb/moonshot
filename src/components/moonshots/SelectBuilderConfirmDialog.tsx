@@ -1,7 +1,7 @@
-import type { Interest } from "../../types/types";
+import type { UserProfile } from "../../types/types";
 
 interface SelectBuilderConfirmDialogProps {
-  builder: Interest;
+  builder: UserProfile;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -19,15 +19,15 @@ function SelectBuilderConfirmDialog({
         <div className="mb-6 rounded-xl border border-white/10 bg-black/40 p-4">
           <div className="flex items-center gap-3">
             <img
-              src={builder.moonshotId || "/default-avatar.png"}
-              alt={builder.builderPubkey || "Builder"}
+              src={builder.picture || "/public/default-avatar.png"}
+              alt={builder.name || "Builder"}
               className="h-12 w-12 rounded-full object-cover"
             />
             <div>
               <p className="text-sm font-medium text-white">
-                {builder.builderPubkey || "Anonymous Builder"}
+                {builder.name || "Bob The Builder"}
               </p>
-              <p className="text-xs text-gray-400">{builder.builderPubkey?.slice(0, 16)}...</p>
+              <p className="text-xs text-gray-400">{builder.pubkey.slice(0,32)}...</p>
             </div>
           </div>
         </div>

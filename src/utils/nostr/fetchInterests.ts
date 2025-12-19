@@ -1,5 +1,5 @@
 import type { Event } from "nostr-tools";
-import type { Interest } from "../../types/types";
+import type { Interest, UserProfile } from "../../types/types";
 import { getPool } from "./pool";
 import { DEFAULT_RELAYS } from "./relayConfig";
 
@@ -143,12 +143,7 @@ export async function fetchUserInterests(userPubkey: string): Promise<Interest[]
 
 
 // Fetch user profile (kind 0)
-export async function fetchUserProfile(pubkey: string): Promise<{
-    pubkey: string;
-    name?: string;
-    picture?: string;
-    about?: string;
-} | null> {
+export async function fetchUserProfile(pubkey: string): Promise<UserProfile | null> {
     const pool = getPool();
 
     return new Promise(resolve => {

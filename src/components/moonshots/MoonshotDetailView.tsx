@@ -3,7 +3,13 @@ import { useNavigate } from "react-router";
 import { BsArrowLeft, BsPencil, BsTrash2, BsPencilSquare, BsChevronDown } from "react-icons/bs";
 import { FiHeart } from "react-icons/fi";
 import BuilderInfoCard from "./../builder/BuilderInfoCard";
-import type { Moonshot, Interest, Comment } from "../../types/types";
+import type {
+  Moonshot,
+  Interest,
+  Comment,
+  UserProfile,
+  ExportedStatus,
+} from "../../types/types";
 import {
   fetchInterests,
   fetchUpvoteCount,
@@ -12,6 +18,7 @@ import {
   fetchMoonshotVersions,
   fetchComments,
   calculateTotalChipIn,
+  fetchUserProfile,
 } from "../../utils/nostr";
 import EditMoonshotDialog from "./EditMoonshotDialog";
 import ShareButton from "./ShareButton";
@@ -20,9 +27,12 @@ import MoonshotVersionHistory from "./MoonshotVersionHistory";
 import CommentSection from "../comments/CommentSection";
 import SelectBuilderConfirmDialog from "./SelectBuilderConfirmDialog";
 import { useToast } from "../../context/ToastContext";
+import { useAuth } from "../../context/AuthContext";
+import { fetchExportedMoonshots } from "../../utils/nostr/fetchMoonshots";
 
 interface MoonshotDetailViewProps {
   moonshot: Moonshot;
+  isExported: boolean;
   onBack: () => void;
   onMoonshotUpdate?: (updatedMoonshot: Moonshot) => void;
   onMoonshotDeleted?: () => void;
@@ -47,9 +57,11 @@ function MoonshotDetailView({
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentMoonshot, setCurrentMoonshot] = useState<Moonshot>(moonshot);
   const [showBuilderDropdown, setShowBuilderDropdown] = useState(false);
-  const [selectedBuilder, setSelectedBuilder] = useState<Interest | null>(null);
+  const [selectedBuilder, setSelectedBuilder] = useState<UserProfile | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
+  const [interestedUsersMetadata, setInterestedUserMetadata] = useState<UserProfile[]>([]);
+  const { userPubkey } = useAuth();
+  const [exportedStatus, setExportedStatus] = useState<ExportedStatus>();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { showToast } = useToast();
@@ -83,6 +95,25 @@ function MoonshotDetailView({
     loadData();
   }, [currentMoonshot.creatorPubkey, currentMoonshot.id]);
 
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await Promise.all(
+          interests.map(async interest => {
+            const profile = await fetchUserProfile(interest.builderPubkey);
+            if (!profile) throw new Error("Profile not found");
+            return profile;
+          })
+        );
+
+        setInterestedUserMetadata(data);
+      } catch (error) {
+        console.log(`ERR: fetchingUserProfile: ${error}`);
+      }
+    };
+    loadData();
+  }, [interests]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -94,6 +125,43 @@ function MoonshotDetailView({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const checkExported = async () => {
+      if (!userPubkey || !moonshot?.eventId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const exportedMap = await fetchExportedMoonshots(userPubkey);
+
+        const exported = exportedMap.get(moonshot.eventId);
+
+        if (exported) {
+          setExportedStatus({
+            isExported: true,
+            exportEventId: exported.exportEventId,
+          });
+        } else {
+          setExportedStatus({
+            isExported: false,
+            exportEventId: null,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to check export status:", error);
+        setExportedStatus({
+          isExported: false,
+          exportEventId: null,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkExported();
+  }, [userPubkey, moonshot?.eventId]);
 
   const handleEditMoonshot = async (updatedData: {
     title: string;
@@ -165,7 +233,7 @@ function MoonshotDetailView({
     }
   };
 
-  const handleSelectBuilder = (builder: Interest) => {
+  const handleSelectBuilder = (builder: UserProfile) => {
     setSelectedBuilder(builder);
     setShowBuilderDropdown(false);
     setShowConfirmDialog(true);
@@ -236,9 +304,9 @@ function MoonshotDetailView({
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setShowBuilderDropdown(!showBuilderDropdown)}
-                    disabled={interests.length === 0}
+                    disabled={interests.length === 0 || exportedStatus?.isExported}
                     className={`inline-flex items-center gap-1.5 rounded-full bg-bitcoin/90 px-3 py-1.5 text-xs font-medium text-black transition-colors ${
-                      interests.length === 0
+                      (interests.length === 0 || exportedStatus?.isExported)
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:bg-bitcoin cursor-pointer"
                     }`}
@@ -254,28 +322,15 @@ function MoonshotDetailView({
                   {/* Dropdown Menu */}
                   {showBuilderDropdown && interests.length > 0 && (
                     <div className="absolute right-0 mt-2 w-64 rounded-xl border border-white/10 bg-card shadow-xl z-10 max-h-80 overflow-y-auto">
-                      <div className="p-2">
-                        {interests.map(interest => (
-                          <button
-                            key={interest.id}
-                            onClick={() => handleSelectBuilder(interest)}
-                            className="w-full flex items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-white/5"
-                          >
-                            <img
-                              src={interest.builderPubkey || "/default-avatar.png"}
-                              className="h-10 w-10 rounded-full object-cover"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-white truncate">
-                                {interest.builderPubkey || "Anonymous"}
-                              </p>
-                              <p className="text-xs text-gray-400 truncate">
-                                {interest.builderPubkey?.slice(0, 16)}...
-                              </p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
+                      {interestedUsersMetadata.map(profile => (
+                        <button
+                          key={profile.pubkey}
+                          onClick={() => handleSelectBuilder(profile)}
+                          className="w-full flex items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-white/5"
+                        >
+                          <BuilderListDropDownCard userProfile={profile} />
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -349,6 +404,13 @@ function MoonshotDetailView({
             </div>
           </div>
 
+          {exportedStatus?.isExported && (
+            <div className="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/5 px-4 py-3 text-sm text-amber-300">
+              This project has been exported to Angor
+              <div className="text-amber-400/80">eventId: {exportedStatus.exportEventId}</div>
+            </div>
+          )}
+
           {/* Version history */}
           <MoonshotVersionHistory versions={versions} loading={loadingVersions} />
 
@@ -416,6 +478,24 @@ function MoonshotDetailView({
           }}
         />
       )}
+    </>
+  );
+}
+
+interface BuilderListDropDownCardProp {
+  userProfile: UserProfile;
+}
+
+function BuilderListDropDownCard({ userProfile }: BuilderListDropDownCardProp) {
+  return (
+    <>
+      <div className="flex justify-center items-center gap-3">
+        <img
+          src={userProfile?.picture}
+          className="w-10 h-10 sm:w-8 sm:h-8 rounded-full border-2 border-bitcoin/30 object-cover shrink-0"
+        />
+        <p className="text-lg">{userProfile?.name}</p>
+      </div>
     </>
   );
 }
