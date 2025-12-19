@@ -232,9 +232,6 @@ function Query() {
                   <span className="px-4 py-2 bg-white/5 border border-white/10 text-gray-200 font-semibold rounded-full">
                     {moonshot.budget} sats
                   </span>
-                  <span className="px-4 py-2 bg-white/5 border border-white/10 text-gray-200 font-semibold rounded-full">
-                    {moonshot.timeline} months
-                  </span>
                   <span
                     className={`px-4 py-2 rounded-full border text-sm font-semibold ${
                       moonshot.status === "open"

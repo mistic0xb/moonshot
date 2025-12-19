@@ -115,8 +115,6 @@ function InterestedMoonshotsSection({ interests, loading }: InterestedMoonshotsS
                   <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
                     <span>{moonshot.budget} sats</span>
                     <span>•</span>
-                    <span>{moonshot.timeline} months</span>
-                    <span>•</span>
                     <span>Applied {new Date(interest.createdAt).toLocaleDateString()}</span>
                   </div>
                   {moonshot.topics.length > 0 && (

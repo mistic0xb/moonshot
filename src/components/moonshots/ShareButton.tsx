@@ -33,7 +33,7 @@ function ShareButton({ moonshot }: ShareButtonProps) {
       setShowDialog(false);
     } catch (error) {
       console.error("Failed to share on Nostr:", error);
-      showToast("Failed to share on Nostr. Please try again.", "error")
+      showToast("Failed to share on Nostr. Please try again.", "error");
     } finally {
       setSharing(false);
     }
@@ -124,9 +124,6 @@ function ShareButton({ moonshot }: ShareButtonProps) {
                   {moonshot.budget} sats
                 </span>
                 <span className="text-gray-600">•</span>
-                <span className="rounded-full bg-white/5 px-2.5 py-1 text-gray-200">
-                  {moonshot.timeline} months
-                </span>
               </div>
             </div>
           </div>

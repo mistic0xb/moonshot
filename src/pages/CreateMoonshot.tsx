@@ -10,10 +10,8 @@ function CreateMoonshot() {
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [budget, setBudget] = useState("50000");
-  const [timeline, setTimeline] = useState("3");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showCustomBudget, setShowCustomBudget] = useState(false);
-  const [showCustomTimeline, setShowCustomTimeline] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -30,12 +28,6 @@ function CreateMoonshot() {
       newErrors.budget = "Budget is required";
     } else if (parseInt(budget) < 1000) {
       newErrors.budget = "Minimum budget is 1,000 sats";
-    }
-
-    if (!timeline.trim()) {
-      newErrors.timeline = "Timeline is required";
-    } else if (parseInt(timeline) < 1) {
-      newErrors.timeline = "Minimum timeline is 1 month";
     }
 
     if (selectedTags.length < 2) {
@@ -62,7 +54,7 @@ function CreateMoonshot() {
       return;
     }
 
-    const moonshotId = await publishMoonshot(title, content, budget, timeline, selectedTags);
+    const moonshotId = await publishMoonshot(title, content, budget, selectedTags);
     const allMoonshots = await fetchAllMoonshots();
     console.log(allMoonshots);
     navigate(`/moonshot/${moonshotId}`);
@@ -105,8 +97,8 @@ function CreateMoonshot() {
             {errors.title && <p className="mt-1 text-xs text-red-400">{errors.title}</p>}
           </div>
 
-          {/* Budget & timeline */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {/* Budget */}
+          <div className="grid grid-cols-1 gap-6">
             {/* Budget */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-gray-300 mb-2">
@@ -173,76 +165,6 @@ function CreateMoonshot() {
                 </div>
               )}
               {errors.budget && <p className="mt-1 text-xs text-red-400">{errors.budget}</p>}
-            </div>
-
-            {/* Timeline */}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-300 mb-2">
-                Timeline (months) *
-              </label>
-
-              {!showCustomTimeline ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-gray-200">
-                      {timeline} month{timeline !== "1" ? "s" : ""}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowCustomTimeline(true)}
-                      className="text-gray-400 hover:text-gray-200 underline"
-                    >
-                      Custom
-                    </button>
-                  </div>
-
-                  <input
-                    type="range"
-                    min="1"
-                    max="12"
-                    step="1"
-                    value={timeline}
-                    onChange={e => {
-                      setTimeline(e.target.value);
-                      if (errors.timeline) setErrors({ ...errors, timeline: "" });
-                    }}
-                    className="w-full h-2 rounded-full bg-black/40 accent-nostr slider"
-                  />
-
-                  <div className="flex justify-between text-[11px] text-gray-500">
-                    <span>1M</span>
-                    <span>3M</span>
-                    <span>6M</span>
-                    <span>9M</span>
-                    <span>12M</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    value={timeline}
-                    onChange={e => {
-                      setTimeline(e.target.value);
-                      if (errors.timeline) setErrors({ ...errors, timeline: "" });
-                    }}
-                    min="1"
-                    max="36"
-                    placeholder="Months"
-                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm text-gray-100 bg-black/40 placeholder:text-gray-500 focus:outline-none focus:border-nostr ${
-                      errors.timeline ? "border-red-500" : "border-white/10"
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomTimeline(false)}
-                    className="rounded-xl bg-white/5 px-4 py-2.5 text-xs font-semibold text-gray-200 hover:bg-white/10 transition-colors"
-                  >
-                    Back
-                  </button>
-                </div>
-              )}
-              {errors.timeline && <p className="mt-1 text-xs text-red-400">{errors.timeline}</p>}
             </div>
           </div>
 

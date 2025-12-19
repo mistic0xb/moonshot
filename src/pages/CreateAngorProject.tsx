@@ -310,8 +310,6 @@ function CreateAngorProject() {
                   <span>
                     Budget: <span className="text-bitcoin">{moonshot.budget} sats</span>
                   </span>
-                  <span>•</span>
-                  <span>Timeline: {moonshot.timeline} months</span>
                 </div>
               </div>
 

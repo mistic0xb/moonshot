@@ -10,7 +10,6 @@ interface EditMoonshotDialogProps {
     title: string;
     content: string;
     budget: string;
-    timeline: string;
     topics: string[];
     status: string;
   }) => void;
@@ -21,7 +20,6 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
   const [title, setTitle] = useState(moonshot.title);
   const [content, setContent] = useState(moonshot.content);
   const [budget, setBudget] = useState(moonshot.budget);
-  const [timeline, setTimeline] = useState(moonshot.timeline);
   const [topics, setTopics] = useState<string[]>(moonshot.topics || []);
   const [status, setStatus] = useState(moonshot.status);
   const [newTopic, setNewTopic] = useState("");
@@ -40,7 +38,7 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
   };
 
   const handleSubmit = async () => {
-    if (!title.trim() || !content.trim() || !budget.trim() || !timeline.trim()) {
+    if (!title.trim() || !content.trim() || !budget.trim()) {
       showToast("Please fill in all required fields", "info");
       return;
     }
@@ -52,7 +50,6 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
         title,
         content,
         budget,
-        timeline,
         topics,
         status,
       });
@@ -110,7 +107,7 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
             />
           </div>
 
-          {/* Budget / timeline / status */}
+          {/* Budget / status */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-300">
@@ -121,18 +118,6 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
                 value={budget}
                 onChange={e => setBudget(e.target.value)}
                 placeholder="50000"
-                className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-300">
-                Timeline (months) *
-              </label>
-              <input
-                type="text"
-                value={timeline}
-                onChange={e => setTimeline(e.target.value)}
-                placeholder="3"
                 className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-bitcoin"
               />
             </div>
@@ -198,7 +183,6 @@ export function EditMoonshotDialog({ moonshot, onSubmit, onClose }: EditMoonshot
               !title.trim() ||
               !content.trim() ||
               !budget.trim() ||
-              !timeline.trim() ||
               !status.trim()
             }
             className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-bitcoin px-4 py-2.5 text-xs sm:text-sm font-semibold uppercase tracking-wide text-black transition-colors hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-200 cursor-pointer"

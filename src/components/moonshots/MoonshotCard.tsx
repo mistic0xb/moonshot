@@ -112,10 +112,6 @@ function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
           <FiZap className="text-bitcoin" />
           <span>{moonshot.budget.toLocaleString()} sats</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <FiClock className="text-gray-500" />
-          <span>{moonshot.timeline} mo</span>
-        </div>
       </div>
 
       {/* Footer: Engagement + CTA */}

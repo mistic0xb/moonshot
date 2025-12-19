@@ -5,7 +5,6 @@ export interface Moonshot {
   title: string;
   content: string; // Markdown
   budget: string;
-  timeline: string;
   topics: Array<string>;
   status: string;
   creatorPubkey: string;

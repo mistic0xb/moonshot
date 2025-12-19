@@ -34,7 +34,6 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
                     const dTag = event.tags.find(t => t[0] === "d");
                     const titleTag = event.tags.find(t => t[0] === "title");
                     const budgetTag = event.tags.find(t => t[0] === "budget");
-                    const timelineTag = event.tags.find(t => t[0] === "timeline");
                     const statusTag = event.tags.find(t => t[0] === "status");
                     const topicsTag = event.tags.find(t => t[0] === "topics");
                     const isExplorableTag = event.tags.find(t => t[0] === "isExplorable");
@@ -50,7 +49,6 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
                         title: titleTag[1],
                         content: event.content,
                         budget: budgetTag?.[1] || "TBD",
-                        timeline: timelineTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [], // Get all topics after tag name
                         status: (statusTag?.[1] as any) || "open",
                         creatorPubkey: event.pubkey,
@@ -102,7 +100,6 @@ export async function fetchAllMoonshotsByCreator(creatorPubkey: string): Promise
                     const dTag = event.tags.find(t => t[0] === "d");
                     const titleTag = event.tags.find(t => t[0] === "title");
                     const budgetTag = event.tags.find(t => t[0] === "budget");
-                    const timelineTag = event.tags.find(t => t[0] === "timeline");
                     const statusTag = event.tags.find(t => t[0] === "status");
                     const topicsTag = event.tags.find(t => t[0] === "topics");
                     const isExplorableTag = event.tags.find(t => t[0] === "isExplorable");
@@ -118,7 +115,6 @@ export async function fetchAllMoonshotsByCreator(creatorPubkey: string): Promise
                         title: titleTag[1],
                         content: event.content,
                         budget: budgetTag?.[1] || "TBD",
-                        timeline: timelineTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [], // Get all topics after tag name
                         status: (statusTag?.[1] as any) || "open",
                         creatorPubkey: event.pubkey,
@@ -170,7 +166,6 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
                     const dTag = event.tags.find(t => t[0] === "d");
                     const titleTag = event.tags.find(t => t[0] === "title");
                     const budgetTag = event.tags.find(t => t[0] === "budget");
-                    const timelineTag = event.tags.find(t => t[0] === "timeline");
                     const statusTag = event.tags.find(t => t[0] === "status");
                     const topicsTag = event.tags.find(t => t[0] === "topics");
                     const isExplorableTag = event.tags.find(t => t[0] === "isExplorable");
@@ -187,7 +182,6 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
                         title: titleTag[1],
                         content: event.content,
                         budget: budgetTag?.[1] || "TBD",
-                        timeline: timelineTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [],
                         status: (statusTag?.[1] as any) || "open",
                         creatorPubkey: event.pubkey,
@@ -237,7 +231,6 @@ export async function fetchMoonshotVersions(moonshotId: string, creatorPubkey: s
                     const eventRefTag = event.tags.find((t: string[]) => t[0] === "e");
                     const titleTag = event.tags.find((t: string[]) => t[0] === "title");
                     const budgetTag = event.tags.find((t: string[]) => t[0] === "budget");
-                    const timelineTag = event.tags.find((t: string[]) => t[0] === "timeline");
                     const statusTag = event.tags.find((t: string[]) => t[0] === "status");
                     const topicsTag = event.tags.find((t: string[]) => t[0] === "topics");
                     const originalTimestampTag = event.tags.find((t: string[]) => t[0] === "original-timestamp");
@@ -252,7 +245,6 @@ export async function fetchMoonshotVersions(moonshotId: string, creatorPubkey: s
                         title: titleTag[1],
                         content: event.content,
                         budget: budgetTag?.[1] || "TBD",
-                        timeline: timelineTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [],
                         status: (statusTag?.[1] as any) || "open",
                         creatorPubkey: event.pubkey,

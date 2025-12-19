@@ -9,7 +9,6 @@ export async function publishMoonshot(
     title: string,
     content: string,
     budget: string,
-    timeline: string,
     topics: string[]
 ): Promise<string> {
     if (!window.nostr) {
@@ -26,7 +25,6 @@ export async function publishMoonshot(
         ["title", title],
         ["topics", ...topics], // Store all topics in one tag
         ["budget", budget],
-        ["timeline", timeline],
         ["status", "open"],
         ["isExplorable", "true"]
     ];
@@ -116,7 +114,6 @@ async function publishVersionSnapshot(
     title: string,
     content: string,
     budget: string,
-    timeline: string,
     topics: string[],
     status: string,
     createdAt: number
@@ -137,7 +134,6 @@ async function publishVersionSnapshot(
         ["title", title],
         ["topics", ...topics],
         ["budget", budget],
-        ["timeline", timeline],
         ["status", status],
         ["original-timestamp", createdAt.toString()] // Preserve original creation time
     ];
@@ -170,14 +166,12 @@ export async function updateMoonshot(
     currentTitle: string,
     currentContent: string,
     currentBudget: string,
-    currentTimeline: string,
     currentTopics: string[],
     currentStatus: string,
     currentCreatedAt: number,
     newTitle: string,
     newContent: string,
     newBudget: string,
-    newTimeline: string,
     newTopics: string[],
     newStatus: string,
 ): Promise<string> {
@@ -193,7 +187,6 @@ export async function updateMoonshot(
         currentTitle,
         currentContent,
         currentBudget,
-        currentTimeline,
         currentTopics,
         currentStatus,
         currentCreatedAt
@@ -208,7 +201,6 @@ export async function updateMoonshot(
         ["title", newTitle],
         ["topics", ...newTopics],
         ["budget", newBudget],
-        ["timeline", newTimeline],
         ["status", newStatus],
         ["isExplorable", "true"]
     ];
@@ -248,7 +240,6 @@ export async function publishNostrShare(
     // Build the message
     let message = `🚀 New MoonShot: ${moonshot.title}\n\n`;
     message += `💰 Budget: ${moonshot.budget} sats\n`;
-    message += `⏱️ Timeline: ${moonshot.timeline} months\n`;
 
     if (moonshot.topics && moonshot.topics.length > 0) {
         message += `\n${moonshot.topics.map(topic => `#${topic}`).join(' ')}\n`;

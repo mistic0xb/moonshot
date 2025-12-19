@@ -116,12 +116,6 @@ function MoonshotVersionHistory({ versions, loading }: MoonshotVersionHistoryPro
                         </p>
                       </div>
                       <div className="rounded-lg border border-white/10 bg-black/40 px-2.5 py-2">
-                        <p className="mb-0.5 text-[10px] text-gray-500">Timeline</p>
-                        <p className="text-[12px] font-semibold text-gray-200">
-                          {version.timeline} months
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-white/10 bg-black/40 px-2.5 py-2">
                         <p className="mb-0.5 text-[10px] text-gray-500">Status</p>
                         <p
                           className={`text-[12px] font-semibold ${

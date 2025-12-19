@@ -16,7 +16,6 @@ export async function removeMoonshot(moonshot: Moonshot): Promise<void> {
         ["title", moonshot.title],
         ["topics", ...moonshot.topics],
         ["budget", moonshot.budget],
-        ["timeline", moonshot.timeline],
         ["status", moonshot.status],
         ["isExplorable", "false"], // Mark as not explorable
     ];

@@ -3,12 +3,7 @@ import { useNavigate } from "react-router";
 import { BsArrowLeft, BsPencil, BsTrash2, BsPencilSquare, BsChevronDown } from "react-icons/bs";
 import { FiHeart } from "react-icons/fi";
 import BuilderInfoCard from "./../builder/BuilderInfoCard";
-import type {
-  Moonshot,
-  Interest,
-  Comment,
-  UserProfile,
-} from "../../types/types";
+import type { Moonshot, Interest, Comment, UserProfile } from "../../types/types";
 import {
   fetchInterests,
   fetchUpvoteCount,
@@ -128,7 +123,6 @@ function MoonshotDetailView({
     title: string;
     content: string;
     budget: string;
-    timeline: string;
     topics: string[];
     status: string;
   }) => {
@@ -140,14 +134,12 @@ function MoonshotDetailView({
         currentMoonshot.title,
         currentMoonshot.content,
         currentMoonshot.budget,
-        currentMoonshot.timeline,
         currentMoonshot.topics,
         currentMoonshot.status,
         currentMoonshot.createdAt,
         updatedData.title,
         updatedData.content,
         updatedData.budget,
-        updatedData.timeline,
         updatedData.topics,
         updatedData.status
       );
@@ -267,7 +259,7 @@ function MoonshotDetailView({
                     onClick={() => setShowBuilderDropdown(!showBuilderDropdown)}
                     disabled={interests.length === 0 || exportedStatus?.isExported}
                     className={`inline-flex items-center gap-1.5 rounded-full bg-bitcoin/90 px-3 py-1.5 text-xs font-medium text-black transition-colors ${
-                      (interests.length === 0 || exportedStatus?.isExported)
+                      interests.length === 0 || exportedStatus?.isExported
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:bg-bitcoin cursor-pointer"
                     }`}
@@ -322,12 +314,6 @@ function MoonshotDetailView({
               <div className="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5">
                 <p className="mb-0.5 text-[11px] text-gray-500">Budget</p>
                 <p className="text-sm font-semibold text-bitcoin">{currentMoonshot.budget} sats</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5">
-                <p className="mb-0.5 text-[11px] text-gray-500">Timeline</p>
-                <p className="text-sm font-semibold text-gray-200">
-                  {currentMoonshot.timeline} months
-                </p>
               </div>
               <div className="rounded-xl border border-white/10 bg-black/40 px-3 py-2.5">
                 <p className="mb-0.5 text-[11px] text-gray-500">Status</p>
