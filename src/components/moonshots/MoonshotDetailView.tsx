@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import { BsArrowLeft, BsPencil, BsTrash2, BsPencilSquare, BsChevronDown } from "react-icons/bs";
 import { FiHeart } from "react-icons/fi";
 import BuilderInfoCard from "./../builder/BuilderInfoCard";
-import type { Moonshot, Interest, Comment, UserProfile } from "../../types/types";
+import type { Moonshot, UserProfile } from "../../types/types";
 import {
   fetchInterests,
   fetchUpvoteCount,
@@ -37,13 +38,9 @@ function MoonshotDetailView({
   onMoonshotDeleted,
 }: MoonshotDetailViewProps) {
   const navigate = useNavigate();
-  const [interests, setInterests] = useState<Interest[]>([]);
-  const [upvoteCount, setUpvoteCount] = useState(0);
-  const [versions, setVersions] = useState<Moonshot[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingVersions, setLoadingVersions] = useState(true);
-  const [totalChipIn, setTotalChipIn] = useState(0);
+  const { showToast } = useToast();
+  const { getExportStatus } = useExportedMoonshots();
+  
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -51,61 +48,56 @@ function MoonshotDetailView({
   const [showBuilderDropdown, setShowBuilderDropdown] = useState(false);
   const [selectedBuilder, setSelectedBuilder] = useState<UserProfile | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [interestedUsersMetadata, setInterestedUserMetadata] = useState<UserProfile[]>([]);
-  const { getExportStatus } = useExportedMoonshots();
+  
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const exportedStatus = getExportStatus(currentMoonshot.eventId);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // Fetch interests
+  const interestsQuery = useQuery({
+    queryKey: ["interests", currentMoonshot.id, currentMoonshot.creatorPubkey],
+    queryFn: () => fetchInterests(currentMoonshot.id, currentMoonshot.creatorPubkey),
+  });
 
-  const { showToast } = useToast();
+  // Fetch upvote count
+  const upvoteQuery = useQuery({
+    queryKey: ["upvotes", currentMoonshot.id, currentMoonshot.creatorPubkey],
+    queryFn: () => fetchUpvoteCount(currentMoonshot.id, currentMoonshot.creatorPubkey),
+  });
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [fetchedInterests, upvotes, fetchedVersions, fetchedComments] = await Promise.all([
-          fetchInterests(currentMoonshot.id, currentMoonshot.creatorPubkey),
-          fetchUpvoteCount(currentMoonshot.id, currentMoonshot.creatorPubkey),
-          fetchMoonshotVersions(currentMoonshot.id, currentMoonshot.creatorPubkey),
-          fetchComments(currentMoonshot.creatorPubkey, currentMoonshot.id),
-        ]);
-        console.log("Interests:", fetchedInterests);
-        console.log("Versions:", fetchedVersions);
-        console.log("comments:", fetchedComments);
+  // Fetch versions
+  const versionsQuery = useQuery({
+    queryKey: ["versions", currentMoonshot.id, currentMoonshot.creatorPubkey],
+    queryFn: () => fetchMoonshotVersions(currentMoonshot.id, currentMoonshot.creatorPubkey),
+  });
 
-        setInterests(fetchedInterests);
-        setUpvoteCount(upvotes);
-        setVersions(fetchedVersions);
-        setComments(fetchedComments);
-        setTotalChipIn(calculateTotalChipIn(fetchedComments));
-        setLoadingVersions(false);
-      } catch (error) {
-        console.error("Failed to load moonshot data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch comments
+  const commentsQuery = useQuery({
+    queryKey: ["comments", currentMoonshot.id, currentMoonshot.creatorPubkey],
+    queryFn: () => fetchComments(currentMoonshot.creatorPubkey, currentMoonshot.id),
+  });
 
-    loadData();
-  }, [currentMoonshot.creatorPubkey, currentMoonshot.id]);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const data = await Promise.all(
-          interests.map(async interest => {
+  // Fetch user profiles for interested builders
+  const interestedUsersQuery = useQuery({
+    queryKey: ["interested-users", interestsQuery.data?.map(i => i.builderPubkey)],
+    queryFn: async () => {
+      if (!interestsQuery.data || interestsQuery.data.length === 0) return [];
+      
+      const profiles = await Promise.all(
+        interestsQuery.data.map(async interest => {
+          try {
             const profile = await fetchUserProfile(interest.builderPubkey);
-            if (!profile) throw new Error("Profile not found");
             return profile;
-          })
-        );
-
-        setInterestedUserMetadata(data);
-      } catch (error) {
-        console.log(`ERR: fetchingUserProfile: ${error}`);
-      }
-    };
-    loadData();
-  }, [interests]);
+          } catch (error) {
+            console.error(`Failed to fetch profile for ${interest.builderPubkey}:`, error);
+            return null;
+          }
+        })
+      );
+      
+      return profiles.filter((p): p is UserProfile => p !== null);
+    },
+    enabled: !!interestsQuery.data && interestsQuery.data.length > 0,
+  });
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -120,12 +112,12 @@ function MoonshotDetailView({
   }, []);
 
   const handleEditMoonshot = async (updatedData: {
-    title: string;
-    content: string;
-    budget: string;
-    topics: string[];
-    status: string;
-  }) => {
+      title: string;
+      content: string;
+      budget: string;
+      topics: string[];
+      status: string;
+    }) => {
     try {
       await updateMoonshot(
         currentMoonshot.id,
@@ -149,17 +141,11 @@ function MoonshotDetailView({
         ...updatedData,
       };
       setCurrentMoonshot(updatedMoonshot);
-
-      const fetchedVersions = await fetchMoonshotVersions(
-        currentMoonshot.id,
-        currentMoonshot.creatorPubkey
-      );
-      setVersions(fetchedVersions);
-
+      
       if (onMoonshotUpdate) {
         onMoonshotUpdate(updatedMoonshot);
       }
-
+      
       setShowEditDialog(false);
       showToast("Moonshot updated successfully!", "success");
     } catch (error) {
@@ -173,7 +159,7 @@ function MoonshotDetailView({
       setIsDeleting(true);
       await removeMoonshot(currentMoonshot);
       setShowDeleteDialog(false);
-
+      
       if (onMoonshotDeleted) {
         onMoonshotDeleted();
       }
@@ -203,6 +189,16 @@ function MoonshotDetailView({
       });
     }
   };
+
+  const interests = interestsQuery.data ?? [];
+  const upvoteCount = upvoteQuery.data ?? 0;
+  const versions = versionsQuery.data ?? [];
+  const comments = commentsQuery.data ?? [];
+  const interestedUsersMetadata = interestedUsersQuery.data ?? [];
+  const totalChipIn = comments.length > 0 ? calculateTotalChipIn(comments) : 0;
+  
+  const loading = interestsQuery.isPending;
+  const loadingVersions = versionsQuery.isPending;
 
   return (
     <>
