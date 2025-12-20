@@ -3,6 +3,7 @@ import { BsArrowRight } from "react-icons/bs";
 import type { Moonshot, UserProfile } from "../../types/types";
 import { useEffect, useState } from "react";
 import { fetchUpvoteCount, fetchInterests, fetchUserProfile } from "../../utils/nostr";
+import { nip19 } from "nostr-tools";
 
 interface MoonshotCardProps {
   moonshot: Moonshot;
@@ -77,9 +78,13 @@ function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
             />
           </div>
         )}
-        <span className="text-gray-400 text-sm font-medium">
-          {creatorProfile?.name || `${moonshot.creatorPubkey.slice(0, 8)}...`}
-        </span>
+        <span className="text-gray-300 text-sm font-medium">{creatorProfile?.name}</span>
+
+        {!creatorProfile?.name && (
+          <span className="text-gray-500 text-xs break-all max-w-90 leading-tight">
+            {nip19.npubEncode(moonshot.creatorPubkey)}
+          </span>
+        )}
       </div>
 
       {/* Title */}
@@ -112,6 +117,11 @@ function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
           <FiZap className="text-bitcoin" />
           <span>{moonshot.budget.toLocaleString()} sats</span>
         </div>
+
+        <div className="flex items-center gap-1.5 text-gray-500">
+          <FiClock />
+          <span>{timeAgo(moonshot.createdAt)}</span>
+        </div>
       </div>
 
       {/* Footer: Engagement + CTA */}
@@ -137,3 +147,25 @@ function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
 }
 
 export default MoonshotCard;
+
+function timeAgo(timestampMs: number) {
+  console.log("TIMESTAMP (ms):", timestampMs);
+  
+  const seconds = Math.floor((Date.now() - timestampMs) / 1000);
+
+  const intervals = [
+    { label: "y", seconds: 31536000 },
+    { label: "mo", seconds: 2592000 },
+    { label: "d", seconds: 86400 },
+    { label: "h", seconds: 3600 },
+    { label: "m", seconds: 60 },
+    { label: "s", seconds: 1 },
+  ];
+
+  for (const i of intervals) {
+    const count = Math.floor(seconds / i.seconds);
+    if (count >= 1) return `${count}${i.label} ago`;
+  }
+
+  return "just now";
+}
