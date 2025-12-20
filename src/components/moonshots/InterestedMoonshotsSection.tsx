@@ -1,61 +1,52 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BsChevronDown, BsChevronUp, BsChat } from "react-icons/bs";
 import type { Interest, Moonshot } from "../../types/types";
-import { fetchMoonshotById } from "../../utils/nostr";
 import BuilderChatBox from "../builder/BuilderChatBox";
+import { useQuery } from "@tanstack/react-query";
+import { fetchMoonshotById } from "../../utils/nostr";
 
 interface InterestedMoonshotsSectionProps {
   interests: Interest[];
   loading: boolean;
 }
 
-interface MoonshotWithInterest {
+type MoonshotWithInterests = {
   moonshot: Moonshot;
   interest: Interest;
-}
+};
 
 function InterestedMoonshotsSection({ interests, loading }: InterestedMoonshotsSectionProps) {
-  const [moonshotsWithInterests, setMoonshotsWithInterests] = useState<MoonshotWithInterest[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedInterest, setSelectedInterest] = useState<Interest | null>(null);
-  const [loadingMoonshots, setLoadingMoonshots] = useState(true);
 
-  useEffect(() => {
-    const loadMoonshots = async () => {
-      if (interests.length === 0) {
-        setLoadingMoonshots(false);
-        return;
-      }
-
-      const moonshotsData: MoonshotWithInterest[] = [];
-
-      for (const interest of interests) {
-        try {
+  const {
+    data: moonshotsWithInterests = [],
+    isPending,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["moonshots-with-interests", interests],
+    enabled: interests.length > 0,
+    queryFn: async () => {
+      const results = await Promise.all(
+        interests.map(async interest => {
           const moonshot = await fetchMoonshotById(interest.moonshotId);
-          if (moonshot) {
-            moonshotsData.push({ moonshot, interest });
-          }
-        } catch (error) {
-          console.error(`Failed to load moonshot ${interest.moonshotId}:`, error);
-        }
-      }
-
-      setMoonshotsWithInterests(moonshotsData);
-      setLoadingMoonshots(false);
-    };
-
-    loadMoonshots();
-  }, [interests]);
+          return moonshot ? { moonshot, interest } : null;
+        })
+      );
+      return results.filter((item): item is MoonshotWithInterests => item !== null);
+    },
+  });
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  if (loading || loadingMoonshots) {
+  if (loading || isPending) {
     return (
       <section className="space-y-4">
         <h2 className="text-xl sm:text-2xl font-semibold text-white">
-          Moonshots You&apos;re Interested In
+          Moonshots You're Interested In
         </h2>
         <div className="py-10 text-center">
           <div className="mx-auto mb-3 h-8 w-8 rounded-full border-2 border-white/20 border-t-nostr animate-spin" />
@@ -65,15 +56,20 @@ function InterestedMoonshotsSection({ interests, loading }: InterestedMoonshotsS
     );
   }
 
+  if (isError) {
+    console.error(error);
+    return <span>Error loading moonshots</span>;
+  }
+
   if (moonshotsWithInterests.length === 0) {
     return (
       <section className="space-y-4">
         <h2 className="text-xl sm:text-2xl font-semibold text-white">
-          Moonshots You&apos;re Interested In
+          Moonshots You're Interested In
         </h2>
         <div className="rounded-2xl border border-dashed border-white/10 bg-black/40 px-6 py-10 text-center">
           <p className="mb-3 text-sm text-gray-300">
-            You haven&apos;t shown interest in any moonshots yet.
+            You haven't shown interest in any moonshots yet.
           </p>
           <button
             onClick={() => (window.location.href = "/explore")}
@@ -89,7 +85,7 @@ function InterestedMoonshotsSection({ interests, loading }: InterestedMoonshotsS
   return (
     <section className="space-y-4">
       <h2 className="text-xl sm:text-2xl font-semibold text-white">
-        Moonshots You&apos;re Interested In
+        Moonshots You're Interested In
       </h2>
 
       <div className="space-y-3">
