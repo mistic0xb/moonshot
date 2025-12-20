@@ -35,7 +35,6 @@ export function ExportedMoonshotsProvider({ children }: ExportedMoonshotsProvide
       try {
         setLoading(true);
         const res = await fetchExportedMoonshots(userPubkey);
-        console.log("EXPORTED MOONSHOTS MAP:", res);
         setExportedMoonshots(res);
       } catch (error) {
         console.error("Failed to fetch exported moonshots:", error);
