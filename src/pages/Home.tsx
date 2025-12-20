@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { BsRocket, BsShieldCheck, BsCheckCircle, BsFillRocketTakeoffFill } from "react-icons/bs";
+import { BsRocket, BsShieldCheck, BsCheckCircle } from "react-icons/bs";
 import { FiZap } from "react-icons/fi";
 
 function Home() {
@@ -20,18 +20,17 @@ function Home() {
               <span className="text-xs font-mono text-gray-300">powered by Nostr &amp; Angor</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight flex">
-              LFG!
-              <BsFillRocketTakeoffFill />
-              <br />
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight">
+              Moonshot your <br />
+              <span className="gradient-text">Idea</span>
             </h1>
 
             <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Market place for ideas and builders. <br />
-              Have something that should exist but doest? post
-              it as a moonshot ! or <br />
-              Wanna build cool sh#t that people want - explore and build it;
-              for real money(Sats).
+              moonshot is a platform where you can just post/moonshot your idea, find interested builder &
+              fund them, securely using{" "}
+              <span className="text-green-700">
+                <a href="https://angor.io" target="_blank">angor</a>
+              </span>
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-16">
