@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import { BsPencilSquare } from "react-icons/bs";
 import { useAuth } from "../context/AuthContext";
-import type { Moonshot, ProofOfWorkLink, Interest, UserProfile, Comment } from "../types/types";
+import type { ProofOfWorkLink, UserProfile } from "../types/types";
 import RichTextViewer from "../components/richtext/RichTextViewer";
 import ShareButton from "../components/moonshots/ShareButton";
 import UpvoteButton from "../components/moonshots/UpvoteButton";
@@ -22,70 +23,69 @@ import { useToast } from "../context/ToastContext";
 function Query() {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated, userPubkey } = useAuth();
-
-  const [moonshot, setMoonshot] = useState<Moonshot | null>(null);
-  const [interests, setInterests] = useState<Interest[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [userProfiles, setUserProfiles] = useState<Map<string, UserProfile>>(new Map());
-  const [versions, setVersions] = useState<Moonshot[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingInterests, setLoadingInterests] = useState(true);
-  const [loadingVersions, setLoadingVersions] = useState(true);
-  const [showInterestDialog, setShowInterestDialog] = useState(false);
-
   const { showToast } = useToast();
 
-  useEffect(() => {
-    const loadMoonshot = async () => {
-      if (!id) {
-        setLoading(false);
-        return;
-      }
+  const [showInterestDialog, setShowInterestDialog] = useState(false);
 
-      try {
-        const fetchedMoonshot = await fetchMoonshotById(id);
-        setMoonshot(fetchedMoonshot);
+  // Fetch moonshot
+  const moonshotQuery = useQuery({
+    queryKey: ["moonshot", id],
+    queryFn: () => fetchMoonshotById(id!),
+    enabled: !!id,
+  });
 
-        if (fetchedMoonshot) {
-          const [fetchedInterests, fetchedComments] = await Promise.all([
-            fetchInterests(fetchedMoonshot.id, fetchedMoonshot.creatorPubkey),
-            fetchComments(fetchedMoonshot.creatorPubkey, fetchedMoonshot.id),
-          ]);
+  const moonshot = moonshotQuery.data;
 
-          setInterests(fetchedInterests);
-          setComments(fetchedComments);
+  // Fetch interests
+  const interestsQuery = useQuery({
+    queryKey: ["interests", moonshot?.id, moonshot?.creatorPubkey],
+    queryFn: () => fetchInterests(moonshot!.id, moonshot!.creatorPubkey),
+    enabled: !!moonshot,
+  });
 
-          const profilePromises = fetchedInterests.map(interest =>
-            fetchUserProfile(interest.builderPubkey)
-          );
-          const profiles = await Promise.all(profilePromises);
+  // Fetch comments
+  const commentsQuery = useQuery({
+    queryKey: ["comments", moonshot?.id, moonshot?.creatorPubkey],
+    queryFn: () => fetchComments(moonshot!.creatorPubkey, moonshot!.id),
+    enabled: !!moonshot,
+  });
 
-          const profileMap = new Map<string, UserProfile>();
-          profiles.forEach((profile, index) => {
-            if (profile) {
-              profileMap.set(fetchedInterests[index].builderPubkey, profile);
-            }
-          });
-          setUserProfiles(profileMap);
+  // Fetch versions
+  const versionsQuery = useQuery({
+    queryKey: ["versions", moonshot?.id, moonshot?.creatorPubkey],
+    queryFn: () => fetchMoonshotVersions(moonshot!.id, moonshot!.creatorPubkey),
+    enabled: !!moonshot,
+  });
 
-          setLoadingVersions(true);
-          const fetchedVersions = await fetchMoonshotVersions(
-            fetchedMoonshot.id,
-            fetchedMoonshot.creatorPubkey
-          );
-          setVersions(fetchedVersions);
-          setLoadingVersions(false);
+  // Fetch user profiles for interested builders
+  const interests = interestsQuery.data ?? [];
+  const uniqueBuilders = interests.map(i => i.builderPubkey);
+
+  const userProfilesQuery = useQuery({
+    queryKey: ["builder-profiles", uniqueBuilders],
+    queryFn: async () => {
+      if (interests.length === 0) return new Map<string, UserProfile>();
+
+      const profilePromises = interests.map(interest =>
+        fetchUserProfile(interest.builderPubkey).catch(err => {
+          console.error(`Failed to fetch profile for ${interest.builderPubkey}:`, err);
+          return null;
+        })
+      );
+      const profiles = await Promise.all(profilePromises);
+
+      const profileMap = new Map<string, UserProfile>();
+      profiles.forEach((profile, index) => {
+        if (profile) {
+          profileMap.set(interests[index].builderPubkey, profile);
         }
-      } catch (error) {
-        console.error("Failed to fetch moonshot:", error);
-      } finally {
-        setLoading(false);
-        setLoadingInterests(false);
-      }
-    };
+      });
 
-    loadMoonshot();
-  }, [id]);
+      return profileMap;
+    },
+    enabled: interests.length > 0,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
 
   const handleInterestClick = () => {
     if (!isAuthenticated) {
@@ -115,65 +115,22 @@ function Query() {
       );
 
       setShowInterestDialog(false);
-      showToast("Interest submitted successfullY!", "success");
+      showToast("Interest submitted successfully!", "success");
 
-      const updatedInterests = await fetchInterests(moonshot.id, moonshot.creatorPubkey);
-      setInterests(updatedInterests);
-
-      const profilePromises = updatedInterests.map(interest =>
-        fetchUserProfile(interest.builderPubkey)
-      );
-      const profiles = await Promise.all(profilePromises);
-
-      const profileMap = new Map<string, UserProfile>();
-      profiles.forEach((profile, index) => {
-        if (profile) {
-          profileMap.set(updatedInterests[index].builderPubkey, profile);
-        }
-      });
-      setUserProfiles(profileMap);
+      // Refetch interests and profiles
+      await interestsQuery.refetch();
+      await userProfilesQuery.refetch();
     } catch (error) {
       console.error("Failed to submit interest:", error);
-      showToast("Failed to submit interest. Please try again");
+      showToast("Failed to submit interest. Please try again", "error");
     }
   }
 
-  const SkeletonLayout = () => (
-    <div className="min-h-screen bg-dark pt-28 pb-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left skeleton */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="bg-card/60 border border-white/5 rounded-2xl p-6 animate-pulse">
-              <div className="h-7 w-1/2 bg-white/10 rounded mb-4" />
-              <div className="h-4 w-1/4 bg-white/5 rounded mb-2" />
-              <div className="h-4 w-full bg-white/5 rounded mb-2" />
-              <div className="h-4 w-5/6 bg-white/5 rounded mb-2" />
-              <div className="h-4 w-2/3 bg-white/5 rounded mb-4" />
-              <div className="h-10 w-full bg-white/5 rounded" />
-            </div>
-            <div className="bg-card/40 border border-white/5 rounded-2xl h-56 animate-pulse" />
-          </div>
-
-          {/* Right skeleton */}
-          <div className="bg-card/60 border border-white/5 rounded-2xl p-6 animate-pulse">
-            <div className="h-5 w-40 bg-white/10 rounded mb-6" />
-            <div className="space-y-4">
-              <div className="h-12 bg-white/5 rounded" />
-              <div className="h-12 bg-white/5 rounded" />
-              <div className="h-12 bg-white/5 rounded" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  if (loading) {
+  if (moonshotQuery.isPending) {
     return <SkeletonLayout />;
   }
 
-  if (!moonshot) {
+  if (moonshotQuery.isError || !moonshot) {
     return (
       <div className="min-h-screen bg-dark flex items-center justify-center px-4">
         <div className="text-center">
@@ -183,6 +140,12 @@ function Query() {
       </div>
     );
   }
+
+  const comments = commentsQuery.data ?? [];
+  const versions = versionsQuery.data ?? [];
+  const userProfiles = userProfilesQuery.data ?? new Map<string, UserProfile>();
+  const loadingInterests = interestsQuery.isPending;
+  const loadingVersions = versionsQuery.isPending;
 
   return (
     <>
@@ -273,6 +236,7 @@ function Query() {
                 moonshotCreatorPubkey={moonshot.creatorPubkey}
                 isAuthenticated={isAuthenticated}
                 fetchedComments={comments}
+                onCommentAdded={() => commentsQuery.refetch()}
               />
             </div>
 
@@ -362,3 +326,36 @@ function Query() {
 }
 
 export default Query;
+
+function SkeletonLayout() {
+  return (
+    <div className="min-h-screen bg-dark pt-28 pb-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left skeleton */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-card/60 border border-white/5 rounded-2xl p-6 animate-pulse">
+              <div className="h-7 w-1/2 bg-white/10 rounded mb-4" />
+              <div className="h-4 w-1/4 bg-white/5 rounded mb-2" />
+              <div className="h-4 w-full bg-white/5 rounded mb-2" />
+              <div className="h-4 w-5/6 bg-white/5 rounded mb-2" />
+              <div className="h-4 w-2/3 bg-white/5 rounded mb-4" />
+              <div className="h-10 w-full bg-white/5 rounded" />
+            </div>
+            <div className="bg-card/40 border border-white/5 rounded-2xl h-56 animate-pulse" />
+          </div>
+
+          {/* Right skeleton */}
+          <div className="bg-card/60 border border-white/5 rounded-2xl p-6 animate-pulse">
+            <div className="h-5 w-40 bg-white/10 rounded mb-6" />
+            <div className="space-y-4">
+              <div className="h-12 bg-white/5 rounded" />
+              <div className="h-12 bg-white/5 rounded" />
+              <div className="h-12 bg-white/5 rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

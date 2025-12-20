@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { BsChat, BsChevronDown, BsChevronUp } from "react-icons/bs";
 import type { Comment, UserProfile } from "../../types/types";
 import { buildCommentTree } from "../../utils/nostr/comments";
@@ -12,6 +13,7 @@ interface CommentSectionProps {
   fetchedComments: Comment[];
   isAuthenticated: boolean;
   isCollapsed?: boolean;
+  onCommentAdded?: () => void;
 }
 
 function CommentSection({
@@ -20,21 +22,27 @@ function CommentSection({
   moonshotCreatorPubkey,
   isAuthenticated,
   isCollapsed = false,
+  onCommentAdded,
 }: CommentSectionProps) {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [userProfiles, setUserProfiles] = useState<Map<string, UserProfile>>(new Map());
-  const [loading, setLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState(20);
   const [isExpanded, setIsExpanded] = useState(!isCollapsed);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadComments = async () => {
-    setLoading(true);
-    try {
-      const commentTree = buildCommentTree(fetchedComments);
-      setComments(commentTree);
+  // Build comment tree (this is fast, so we can do it synchronously)
+  const comments = buildCommentTree(fetchedComments);
 
-      const uniqueAuthors = [...new Set(fetchedComments.map(c => c.authorPubkey))];
-      const profilePromises = uniqueAuthors.map(pubkey => fetchUserProfile(pubkey));
+  // Fetch user profiles for all comment authors
+  const uniqueAuthors = [...new Set(fetchedComments.map(c => c.authorPubkey))];
+  
+  const userProfilesQuery = useQuery({
+    queryKey: ["comment-profiles", moonshotId, uniqueAuthors, refreshKey],
+    queryFn: async () => {
+      const profilePromises = uniqueAuthors.map(pubkey => 
+        fetchUserProfile(pubkey).catch(err => {
+          console.error(`Failed to fetch profile for ${pubkey}:`, err);
+          return null;
+        })
+      );
       const profiles = await Promise.all(profilePromises);
 
       const profileMap = new Map<string, UserProfile>();
@@ -43,24 +51,29 @@ function CommentSection({
           profileMap.set(uniqueAuthors[index], profile);
         }
       });
-      setUserProfiles(profileMap);
-    } catch (error) {
-      console.error("Failed to load comments:", error);
-    } finally {
-      setLoading(false);
+      
+      return profileMap;
+    },
+    enabled: uniqueAuthors.length > 0,
+    staleTime: 5 * 60 * 1000, // Cache profiles for 5 minutes
+  });
+
+  const handleCommentSuccess = () => {
+    // Trigger a refresh by changing the key
+    setRefreshKey(prev => prev + 1);
+    // Notify parent to refetch comments
+    if (onCommentAdded) {
+      onCommentAdded();
     }
   };
 
-  useEffect(() => {
-    loadComments();
-  }, [moonshotId, moonshotCreatorPubkey, fetchedComments]);
-
-  const handleCommentSuccess = () => {
-    loadComments();
-  };
-
   const handleReplySubmit = () => {
-    loadComments();
+    // Trigger a refresh by changing the key
+    setRefreshKey(prev => prev + 1);
+    // Notify parent to refetch comments
+    if (onCommentAdded) {
+      onCommentAdded();
+    }
   };
 
   // Count total comments including replies
@@ -73,6 +86,8 @@ function CommentSection({
   const totalComments = countAllComments(comments);
   const displayedComments = comments.slice(0, displayCount);
   const hasMore = comments.length > displayCount;
+  const userProfiles = userProfilesQuery.data ?? new Map();
+  const loading = userProfilesQuery.isPending;
 
   return (
     <div className="mt-6 rounded-2xl border border-white/5 bg-card/70 p-5 sm:p-6">
