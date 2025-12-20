@@ -1,7 +1,9 @@
+/* eslint-disable prefer-const */
 import type { Event } from "nostr-tools";
 import type { Interest, UserProfile } from "../../types/types";
 import { getPool } from "./pool";
 import { DEFAULT_RELAYS } from "./relayConfig";
+import type { SubCloser } from "nostr-tools/abstract-pool";
 
 // Fetch interests for a moonshot (kind 30078)
 export async function fetchInterests(moonshotId: string, creatorPubkey: string): Promise<Interest[]> {
@@ -10,7 +12,7 @@ export async function fetchInterests(moonshotId: string, creatorPubkey: string):
     return new Promise(resolve => {
         const interests: Interest[] = [];
         const seen = new Set<string>();
-        let sub: any;
+        let sub: SubCloser;
 
         const timeout = setTimeout(() => {
             if (sub) sub.close();
@@ -82,7 +84,7 @@ export async function fetchUserInterests(userPubkey: string): Promise<Interest[]
     return new Promise(resolve => {
         const interests: Interest[] = [];
         const seen = new Set<string>();
-        let sub: any;
+        let sub: SubCloser;
 
         const timeout = setTimeout(() => {
             if (sub) sub.close();
@@ -103,16 +105,18 @@ export async function fetchUserInterests(userPubkey: string): Promise<Interest[]
 
                 try {
                     const dTag = event.tags.find((t: string[]) => t[0] === "d");
+                    const aTag = event.tags.find((t: string[]) => t[0] === "a");
                     const moonshotEventTag = event.tags.find((t: string[]) => t[0] === "e");
                     const githubTag = event.tags.find((t: string[]) => t[0] === "github");
                     const proofTags = event.tags.filter((t: string[]) => t[0] === "proof");
                     const creatorPubkeyTag = event.tags.find((t: string[]) => t[0] === "p");
 
-                    if (!dTag) return;
+                    if (!dTag || !aTag) return;
 
                     const interest: Interest = {
                         id: dTag[1],
                         eventId: event.id,
+                        moonshotId: aTag[1].split(":")[2],
                         moonshotEventId: moonshotEventTag?.[1] || "",
                         moonshotCreatorPubkey: creatorPubkeyTag?.[1],
                         builderPubkey: event.pubkey,
@@ -145,7 +149,7 @@ export async function fetchUserProfile(pubkey: string): Promise<UserProfile | nu
     const pool = getPool();
 
     return new Promise(resolve => {
-        let sub: any;
+        let sub: SubCloser;
 
         const timeout = setTimeout(() => {
             if (sub) sub.close();

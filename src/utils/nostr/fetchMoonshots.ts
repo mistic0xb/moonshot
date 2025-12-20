@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
+/* eslint-disable prefer-const */
 import type { Event, Filter } from "nostr-tools";
 import type { ExportedMoonshot, Moonshot } from "../../types/types";
 import { getPool } from "./pool";
 import { DEFAULT_RELAYS } from "./relayConfig";
+import type { SubCloser } from "nostr-tools/abstract-pool";
+
 // Fetch all moonshot events
 export async function fetchAllMoonshots(): Promise<Moonshot[]> {
     const pool = getPool();
@@ -11,7 +12,7 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
     return new Promise(resolve => {
         const moonshots: Moonshot[] = [];
         const seen = new Set<string>();
-        let sub: any;
+        let sub: SubCloser;
 
         const timeout = setTimeout(() => {
             if (sub) sub.close();
@@ -50,7 +51,7 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
                         content: event.content,
                         budget: budgetTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [], // Get all topics after tag name
-                        status: (statusTag?.[1] as any) || "open",
+                        status: (statusTag?.[1] as string) || "open",
                         creatorPubkey: event.pubkey,
                         isExplorable: isExplorableTag?.[1] === "false" ? false : true,
                         createdAt: event.created_at * 1000,
@@ -76,7 +77,7 @@ export async function fetchAllMoonshotsByCreator(creatorPubkey: string): Promise
     return new Promise(resolve => {
         const moonshots: Moonshot[] = [];
         const seen = new Set<string>();
-        let sub: any;
+        let sub: SubCloser;
 
         const timeout = setTimeout(() => {
             if (sub) sub.close();
@@ -116,7 +117,7 @@ export async function fetchAllMoonshotsByCreator(creatorPubkey: string): Promise
                         content: event.content,
                         budget: budgetTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [], // Get all topics after tag name
-                        status: (statusTag?.[1] as any) || "open",
+                        status: (statusTag?.[1] as string) || "open",
                         creatorPubkey: event.pubkey,
                         isExplorable: isExplorableTag?.[1] === "true",
                         createdAt: event.created_at * 1000,
@@ -139,11 +140,11 @@ export async function fetchAllMoonshotsByCreator(creatorPubkey: string): Promise
 }
 
 // Fetch single moonshot by ID
-export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot | null> {
+export async function fetchMoonshotById(moonshotId: string): Promise<Moonshot | null> {
     const pool = getPool();
 
     return new Promise(resolve => {
-        let sub: any;
+        let sub: SubCloser;
 
         const timeout = setTimeout(() => {
             if (sub) sub.close();
@@ -172,6 +173,7 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
 
 
                     if (!dTag || !titleTag) {
+                        console.log("TAGS RESOLVING TO NULL: dTag || titleTag");
                         resolve(null);
                         return;
                     }
@@ -183,7 +185,7 @@ export async function fetchMoonshotById(moonshotId: string,): Promise<Moonshot |
                         content: event.content,
                         budget: budgetTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [],
-                        status: (statusTag?.[1] as any) || "open",
+                        status: (statusTag?.[1] as string) || "open",
                         creatorPubkey: event.pubkey,
                         isExplorable: isExplorableTag?.[1] === "false" ? false : true,
                         createdAt: event.created_at * 1000,
@@ -210,7 +212,7 @@ export async function fetchMoonshotVersions(moonshotId: string, creatorPubkey: s
     const pool = getPool();
     return new Promise(resolve => {
         const versions: Moonshot[] = [];
-        let sub: any;
+        let sub: SubCloser;
 
         const timeout = setTimeout(() => {
             if (sub) sub.close();
@@ -224,7 +226,7 @@ export async function fetchMoonshotVersions(moonshotId: string, creatorPubkey: s
         };
 
         sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
-            onevent(event: any) {
+            onevent(event: Event) {
                 try {
                     const dTag = event.tags.find((t: string[]) => t[0] === "d");
                     const aTag = event.tags.find((t: string[]) => t[0] === "a");
@@ -246,7 +248,7 @@ export async function fetchMoonshotVersions(moonshotId: string, creatorPubkey: s
                         content: event.content,
                         budget: budgetTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [],
-                        status: (statusTag?.[1] as any) || "open",
+                        status: (statusTag?.[1] as string) || "open",
                         creatorPubkey: event.pubkey,
                         isExplorable: false, // Versions are not explorable
                         createdAt: originalTimestampTag
@@ -287,7 +289,7 @@ export async function fetchExportedMoonshots(
   return new Promise(resolve => {
     const exportedMap = new Map<string, ExportedMoonshot>();
     const seen = new Set<string>();
-    let sub: any;
+    let sub: SubCloser;
 
     const timeout = setTimeout(() => {
       if (sub) sub.close();
