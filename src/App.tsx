@@ -10,29 +10,36 @@ import { ToastProvider } from "./context/ToastContext";
 import MoonshotCreatorPage from "./pages/MoonshotCreatorPage";
 import CreateAngorProject from "./pages/CreateAngorProject";
 import { ExportedMoonshotsProvider } from "./context/ExportedMoonshotContext";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <ExportedMoonshotsProvider>
-          <Router>
-            <div className="min-h-screen bg-blackish">
-              <Navbar />
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/create" element={<CreateMoonshot />} />
-                <Route path="/explore" element={<Explore />} />
-                <Route path="/moonshot/:id" element={<Query />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/dashboard/:id" element={<MoonshotCreatorPage />} />
-                <Route path="/create-angor-project" element={<CreateAngorProject />} />
-              </Routes>
-            </div>
-          </Router>
-        </ExportedMoonshotsProvider>
-      </ToastProvider>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ToastProvider>
+          <ExportedMoonshotsProvider>
+            <Router>
+              <div className="min-h-screen bg-blackish">
+                <Navbar />
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/create" element={<CreateMoonshot />} />
+                  <Route path="/explore" element={<Explore />} />
+                  <Route path="/moonshot/:id" element={<Query />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/dashboard/:id" element={<MoonshotCreatorPage />} />
+                  <Route path="/create-angor-project" element={<CreateAngorProject />} />
+                </Routes>
+              </div>
+            </Router>
+          </ExportedMoonshotsProvider>
+        </ToastProvider>
+      </AuthProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   );
 }
 
