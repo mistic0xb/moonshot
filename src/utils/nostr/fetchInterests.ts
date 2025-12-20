@@ -97,24 +97,22 @@ export async function fetchUserInterests(userPubkey: string): Promise<Interest[]
         };
 
         sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
-            onevent(event: any) {
+            onevent(event: Event) {
                 if (seen.has(event.id)) return;
                 seen.add(event.id);
 
                 try {
                     const dTag = event.tags.find((t: string[]) => t[0] === "d");
-                    const moonshotTag = event.tags.find((t: string[]) => t[0] === "moonshot");
                     const moonshotEventTag = event.tags.find((t: string[]) => t[0] === "e");
                     const githubTag = event.tags.find((t: string[]) => t[0] === "github");
                     const proofTags = event.tags.filter((t: string[]) => t[0] === "proof");
                     const creatorPubkeyTag = event.tags.find((t: string[]) => t[0] === "p");
 
-                    if (!dTag || !moonshotTag) return;
+                    if (!dTag) return;
 
                     const interest: Interest = {
                         id: dTag[1],
                         eventId: event.id,
-                        moonshotId: moonshotTag[1],
                         moonshotEventId: moonshotEventTag?.[1] || "",
                         moonshotCreatorPubkey: creatorPubkeyTag?.[1],
                         builderPubkey: event.pubkey,

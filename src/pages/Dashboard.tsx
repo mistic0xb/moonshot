@@ -1,48 +1,66 @@
-import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import CreatorMoonshotsSection from "../components/moonshots/CreatorMoonshotsSection";
 import InterestedMoonshotsSection from "../components/moonshots/InterestedMoonshotsSection";
-import type { Moonshot, Interest } from "../types/types";
 import { fetchAllMoonshotsByCreator, fetchUserInterests } from "../utils/nostr";
 import { useExportedMoonshots } from "../context/ExportedMoonshotContext";
+import { useQuery } from "@tanstack/react-query";
 
 function Dashboard() {
   const { userPubkey } = useAuth();
-  const [myMoonshots, setMyMoonshots] = useState<Moonshot[]>([]);
-  const [myInterests, setMyInterests] = useState<Interest[]>([]);
+  // const [myMoonshots, setMyMoonshots] = useState<Moonshot[]>([]);
+  // const [myInterests, setMyInterests] = useState<Interest[]>([]);
   const { exportedMoonshots, loading: loadingExported } = useExportedMoonshots();
-  const [loadingMoonshots, setLoadingMoonshots] = useState(true);
-  const [loadingInterests, setLoadingInterests] = useState(true);
+  // const [loadingMoonshots, setLoadingMoonshots] = useState(true);
+  // const [loadingInterests, setLoadingInterests] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!userPubkey) {
-        setLoadingMoonshots(false);
-        setLoadingInterests(false);
-        return;
-      }
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     if (!userPubkey) {
+  //       setLoadingMoonshots(false);
+  //       setLoadingInterests(false);
+  //       return;
+  //     }
 
-      try {
-        const creatorMoonshots = await fetchAllMoonshotsByCreator(userPubkey);
-        setMyMoonshots(creatorMoonshots);
-      } catch (error) {
-        console.error("Failed to fetch moonshots:", error);
-      } finally {
-        setLoadingMoonshots(false);
-      }
+  //     try {
+  //       const creatorMoonshots = await fetchAllMoonshotsByCreator(userPubkey);
+  //       setMyMoonshots(creatorMoonshots);
+  //     } catch (error) {
+  //       console.error("Failed to fetch moonshots:", error);
+  //     } finally {
+  //       setLoadingMoonshots(false);
+  //     }
 
-      try {
-        const interests = await fetchUserInterests(userPubkey);
-        setMyInterests(interests);
-      } catch (error) {
-        console.error("Failed to fetch interests:", error);
-      } finally {
-        setLoadingInterests(false);
-      }
-    };
+  //     try {
+  //       const interests = await fetchUserInterests(userPubkey);
+  //       setMyInterests(interests);
+  //     } catch (error) {
+  //       console.error("Failed to fetch interests:", error);
+  //     } finally {
+  //       setLoadingInterests(false);
+  //     }
+  //   };
 
-    fetchData();
-  }, [userPubkey]);
+  //   fetchData();
+  // }, [userPubkey]);
+
+  const creatorMoonshotsQuery = useQuery({
+    queryKey: ["creator-moonshots", userPubkey],
+    queryFn: () => fetchAllMoonshotsByCreator(userPubkey!),
+    enabled: !!userPubkey,
+  });
+
+  const interestsQuery = useQuery({
+    queryKey: ["user-interests", userPubkey],
+    queryFn: () => fetchUserInterests(userPubkey!),
+    enabled: !!userPubkey,
+  });
+
+  const myMoonshots = creatorMoonshotsQuery.data ?? [];
+  const myInterests = interestsQuery.data ?? [];
+
+  const loadingMoonshots = creatorMoonshotsQuery.isPending || loadingExported;
+
+  const loadingInterests = interestsQuery.isPending;
 
   if (!userPubkey) {
     return (
