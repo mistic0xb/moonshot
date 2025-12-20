@@ -11,6 +11,7 @@ interface CommentItemProps {
   isAuthenticated: boolean;
   onReplySubmit: (parentCommentId: string, parentAuthorPubkey: string) => void;
   depth?: number;
+  allUserProfiles?: Map<string, UserProfile>;
 }
 
 function CommentItem({
@@ -21,6 +22,7 @@ function CommentItem({
   isAuthenticated,
   onReplySubmit,
   depth = 0,
+  allUserProfiles = new Map(),
 }: CommentItemProps) {
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
@@ -43,8 +45,7 @@ function CommentItem({
 
   const handleReplyClick = () => {
     if (!isAuthenticated) {
-      document.dispatchEvent(
-        new CustomEvent("nlLaunch", { detail: "welcome-login" }));
+      document.dispatchEvent(new CustomEvent("nlLaunch", { detail: "welcome-login" }));
       return;
     }
     setShowReplyInput(!showReplyInput);
@@ -155,12 +156,13 @@ function CommentItem({
             <CommentItem
               key={reply.id}
               comment={reply}
-              userProfile={undefined}
+              userProfile={allUserProfiles.get(reply.authorPubkey)}
               moonshotId={moonshotId}
               moonshotCreatorPubkey={moonshotCreatorPubkey}
               isAuthenticated={isAuthenticated}
               onReplySubmit={onReplySubmit}
               depth={depth + 1}
+              allUserProfiles={allUserProfiles}
             />
           ))}
         </div>

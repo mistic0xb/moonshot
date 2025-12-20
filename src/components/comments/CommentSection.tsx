@@ -165,6 +165,7 @@ function CommentSection({
                     moonshotCreatorPubkey={moonshotCreatorPubkey}
                     isAuthenticated={isAuthenticated}
                     onReplySubmit={handleReplySubmit}
+                    allUserProfiles={userProfiles}
                   />
                 ))}
               </div>
