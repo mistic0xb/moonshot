@@ -20,7 +20,7 @@ export interface ProofOfWorkLink {
 export interface Interest {
   id: string; // d-tag UUID
   eventId: string; // Actual nostr event ID
-  moonshotId: string; // The moonshot's d-tag
+  moonshotId?: string; // The moonshot's d-tag
   moonshotEventId: string; // The moonshot's event ID
   builderPubkey: string;
   moonshotCreatorPubkey?: string;
