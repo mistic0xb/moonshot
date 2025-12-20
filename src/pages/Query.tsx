@@ -19,6 +19,7 @@ import {
   fetchComments,
 } from "../utils/nostr";
 import { useToast } from "../context/ToastContext";
+import { nip19 } from "nostr-tools";
 
 function Query() {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +36,13 @@ function Query() {
   });
 
   const moonshot = moonshotQuery.data;
+
+  // Fetch moonshot creator details
+  const moonshotCreatorQuery = useQuery({
+    queryKey: ["moonshot-creator-metadata", moonshot?.creatorPubkey],
+    queryFn: () => fetchUserProfile(moonshot!.creatorPubkey),
+  });
+  const moonshotCreatorMetaData = moonshotCreatorQuery.data;
 
   // Fetch interests
   const interestsQuery = useQuery({
@@ -155,6 +163,45 @@ function Query() {
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-card/70 border border-white/5 rounded-2xl p-6 sm:p-8">
+                {/* Creator Profile */}
+                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/10">
+                  {moonshotCreatorMetaData?.name ? (
+                    <a
+                      href={`https://npub.world/${moonshotCreatorMetaData.pubkey}`}
+                      target="_blank"
+                    >
+                      <div className="relative group">
+                        <img
+                          src={moonshotCreatorMetaData.picture || "src/assets/default-avatar.jpg"}
+                          alt={moonshotCreatorMetaData.name || "Creator"}
+                          className="w-16 h-16 rounded-full border border-white/10 transition-all duration-300 hover:scale-90 hover:border-white/30 cursor-pointer"
+                        />
+                        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black/90 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                          Click to see npub's npub.world
+                        </div>
+                      </div>
+                    </a>
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <img
+                        src={"/src/assets/default-avatar.jpg"}
+                        className="w-12 h-12 rounded-full border border-white/10 object-cover"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm text-gray-400 mb-1">Created by</p>
+                    <h3 className="text-gray-300 text-xl font-medium">
+                      {moonshotCreatorMetaData?.name}
+                    </h3>
+                    {!moonshotCreatorMetaData?.name && (
+                      <span className="text-gray-500 text-xs break-all max-w-90 leading-tight">
+                        {nip19.npubEncode(moonshot.creatorPubkey)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                   <div className="flex-1">
