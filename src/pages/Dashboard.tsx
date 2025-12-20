@@ -7,41 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 
 function Dashboard() {
   const { userPubkey } = useAuth();
-  // const [myMoonshots, setMyMoonshots] = useState<Moonshot[]>([]);
-  // const [myInterests, setMyInterests] = useState<Interest[]>([]);
   const { exportedMoonshots, loading: loadingExported } = useExportedMoonshots();
-  // const [loadingMoonshots, setLoadingMoonshots] = useState(true);
-  // const [loadingInterests, setLoadingInterests] = useState(true);
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     if (!userPubkey) {
-  //       setLoadingMoonshots(false);
-  //       setLoadingInterests(false);
-  //       return;
-  //     }
-
-  //     try {
-  //       const creatorMoonshots = await fetchAllMoonshotsByCreator(userPubkey);
-  //       setMyMoonshots(creatorMoonshots);
-  //     } catch (error) {
-  //       console.error("Failed to fetch moonshots:", error);
-  //     } finally {
-  //       setLoadingMoonshots(false);
-  //     }
-
-  //     try {
-  //       const interests = await fetchUserInterests(userPubkey);
-  //       setMyInterests(interests);
-  //     } catch (error) {
-  //       console.error("Failed to fetch interests:", error);
-  //     } finally {
-  //       setLoadingInterests(false);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [userPubkey]);
 
   const creatorMoonshotsQuery = useQuery({
     queryKey: ["creator-moonshots", userPubkey],
