@@ -54,7 +54,6 @@ function CommentSection({
       
       return profileMap;
     },
-    enabled: uniqueAuthors.length > 0,
     staleTime: 5 * 60 * 1000, // Cache profiles for 5 minutes
   });
 
