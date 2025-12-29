@@ -20,10 +20,13 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
             resolve(moonshots);
         }, 5000);
 
-        const filter = {
+        const filter: Filter = {
             kinds: [30078],
             "#t": ["moonshot"],
             limit: 500,
+            since: Math.floor(
+                new Date("2025-12-25T00:00:00Z").getTime() / 1000
+            ),
         };
 
         sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
@@ -282,54 +285,54 @@ export async function getVersionCount(moonshotId: string, creatorPubkey: string)
 }
 
 export async function fetchExportedMoonshots(
-  userPubkey: string
+    userPubkey: string
 ): Promise<Map<string, ExportedMoonshot>> {
-  const pool = getPool();
+    const pool = getPool();
 
-  return new Promise(resolve => {
-    const exportedMap = new Map<string, ExportedMoonshot>();
-    const seen = new Set<string>();
-    let sub: SubCloser;
+    return new Promise(resolve => {
+        const exportedMap = new Map<string, ExportedMoonshot>();
+        const seen = new Set<string>();
+        let sub: SubCloser;
 
-    const timeout = setTimeout(() => {
-      if (sub) sub.close();
-      resolve(exportedMap);
-    }, 5000);
+        const timeout = setTimeout(() => {
+            if (sub) sub.close();
+            resolve(exportedMap);
+        }, 5000);
 
-    const filter = {
-      kinds: [30078],
-      authors: [userPubkey],
-      "#t": ["moonshot-angor-export"],
-      limit: 100,
-    };
+        const filter = {
+            kinds: [30078],
+            authors: [userPubkey],
+            "#t": ["moonshot-angor-export"],
+            limit: 100,
+        };
 
-    sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
-      onevent(event: Event) {
-        if (seen.has(event.id)) return;
-        seen.add(event.id);
-        try {
-          const moonshotEventTag = event.tags.find(
-            (t: string[]) => t[0] === "e"
-          );
+        sub = pool.subscribeMany(DEFAULT_RELAYS, filter, {
+            onevent(event: Event) {
+                if (seen.has(event.id)) return;
+                seen.add(event.id);
+                try {
+                    const moonshotEventTag = event.tags.find(
+                        (t: string[]) => t[0] === "e"
+                    );
 
-          if (!moonshotEventTag) return;
+                    if (!moonshotEventTag) return;
 
-          const moonshotEventId = moonshotEventTag[1];
+                    const moonshotEventId = moonshotEventTag[1];
 
-          exportedMap.set(moonshotEventId, {
-            exportEventId: event.id,
-            moonshotEventId,
-            exportedBy: event.pubkey,
-          });
-        } catch (err) {
-          console.error("Failed to parse exported moonshot:", err);
-        }
-      },
-      oneose() {
-        clearTimeout(timeout);
-        if (sub) sub.close();
-        resolve(exportedMap);
-      },
+                    exportedMap.set(moonshotEventId, {
+                        exportEventId: event.id,
+                        moonshotEventId,
+                        exportedBy: event.pubkey,
+                    });
+                } catch (err) {
+                    console.error("Failed to parse exported moonshot:", err);
+                }
+            },
+            oneose() {
+                clearTimeout(timeout);
+                if (sub) sub.close();
+                resolve(exportedMap);
+            },
+        });
     });
-  });
 }
