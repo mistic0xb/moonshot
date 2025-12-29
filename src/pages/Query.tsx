@@ -177,7 +177,7 @@ function Query() {
                           className="w-16 h-16 rounded-full border border-white/10 transition-all duration-300 hover:scale-90 hover:border-white/30 cursor-pointer"
                         />
                         <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black/90 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                          Click to see npub's npub.world
+                          View on npub.world
                         </div>
                       </div>
                     </a>
