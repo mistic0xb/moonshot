@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { BsX, BsSend, BsArrowLeft } from "react-icons/bs";
 import { useAuth } from "../../context/AuthContext";
 import { nip19 } from "nostr-tools";
@@ -29,6 +29,23 @@ function BuilderChatBox({ interest, onClose, onNewMessage }: BuilderChatBoxProps
   const otherNpub = nip19.npubEncode(otherPubkey);
   const isCreator = userPubkey !== interest.builderPubkey;
 
+  const loadMessages = useCallback(async () => {
+    if (!userPubkey) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const loadedMessages = await fetchNip04Messages(otherPubkey, 100);
+      setMessages(loadedMessages);
+    } catch (err) {
+      console.error("Load failed:", err);
+      setError("Load Failed");
+    } finally {
+      setLoading(false);
+    }
+  }, [userPubkey, otherPubkey]);
+
   useEffect(() => {
     if (!userPubkey) {
       setError("Please connect your wallet to chat");
@@ -39,25 +56,19 @@ function BuilderChatBox({ interest, onClose, onNewMessage }: BuilderChatBoxProps
     loadMessages();
 
     try {
+      // Simple subscription - just need otherPubkey
       const unsubscribe = subscribeToNip04Messages(message => {
-        const isPartOfConversation =
-          (message.senderPubkey === userPubkey && message.receiverPubkey === otherPubkey) ||
-          (message.senderPubkey === otherPubkey && message.receiverPubkey === userPubkey);
-
-        if (!isPartOfConversation) return;
-        if (interest.moonshotId && message.moonshotId && message.moonshotId !== interest.moonshotId)
-          return;
-
         setMessages(prev => {
           if (prev.some(m => m.id === message.id)) return prev;
-          return [...prev, message].sort((a, b) => a.timestamp - b.timestamp);
+          const newMessages = [...prev, message].sort((a, b) => a.timestamp - b.timestamp);
+          return newMessages;
         });
 
         const isIncoming = message.senderPubkey === otherPubkey;
         if (isIncoming && onNewMessage) {
           onNewMessage(1);
         }
-      }, interest.moonshotId);
+      }, otherPubkey);
 
       unsubscribeRef.current = unsubscribe;
     } catch (err) {
@@ -70,7 +81,7 @@ function BuilderChatBox({ interest, onClose, onNewMessage }: BuilderChatBoxProps
         unsubscribeRef.current();
       }
     };
-  }, [userPubkey, otherPubkey, interest.moonshotId, onNewMessage]);
+  }, [userPubkey, otherPubkey, interest.moonshotId, onNewMessage, loadMessages]);
 
   useEffect(() => {
     scrollToBottom();
@@ -78,27 +89,6 @@ function BuilderChatBox({ interest, onClose, onNewMessage }: BuilderChatBoxProps
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const loadMessages = async () => {
-    if (!userPubkey) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const loadedMessages = await fetchNip04Messages(otherPubkey, interest.moonshotId, 100);
-      setMessages(loadedMessages);
-    } catch (err: any) {
-      console.error("Load failed:", err);
-      setError(
-        err.message?.includes("NIP-04")
-          ? "Your extension doesn't support NIP-04"
-          : "Failed to load messages"
-      );
-    } finally {
-      setLoading(false);
-    }
   };
 
   const sendMessage = async () => {
@@ -133,7 +123,7 @@ function BuilderChatBox({ interest, onClose, onNewMessage }: BuilderChatBoxProps
       );
 
       setMessages(prev => prev.map(m => (m.id === tempId ? { ...m, id: messageId } : m)));
-    } catch (err: any) {
+    } catch (err) {
       console.error("Send failed:", err);
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setNewMessage(messageToSend);
