@@ -44,6 +44,7 @@ function CreateMoonshot() {
     if (!isAuthenticated) {
       document.dispatchEvent(new CustomEvent("nlLaunch", { detail: "login" }));
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const handleAuth = (e: any) => {
         if (e.detail.type === "login" || e.detail.type === "signup") {
           document.removeEventListener("nlAuth", handleAuth);

@@ -1,17 +1,19 @@
-import { FiHeart, FiUsers, FiClock, FiZap } from "react-icons/fi";
+import { FiHeart, FiUsers, FiClock, FiZap, FiShield } from "react-icons/fi";
 import { BsArrowRight } from "react-icons/bs";
 import type { Moonshot, UserProfile } from "../../types/types";
 import { useEffect, useState } from "react";
 import { fetchUpvoteCount, fetchInterests, fetchUserProfile } from "../../utils/nostr";
 import { nip19 } from "nostr-tools";
+import { getTrustBadge } from "../../utils/nostr/trustScore";
 
 interface MoonshotCardProps {
   moonshot: Moonshot;
   isExported: boolean;
   onClick: () => void;
+  trustRank?: number;
 }
 
-function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
+function MoonshotCard({ moonshot, isExported, onClick, trustRank }: MoonshotCardProps) {
   const [upvoteCount, setUpvoteCount] = useState(0);
   const [interestCount, setInterestCount] = useState(0);
   const [creatorProfile, setCreatorProfile] = useState<UserProfile | null>(null);
@@ -43,14 +45,26 @@ function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
     exported: "bg-bitcoin/10 border-bitcoin/40 text-bitcoin",
   };
 
+  const trustBadge = getTrustBadge(trustRank);
+
   return (
     <div
       onClick={onClick}
       className="group relative bg-card/60 border border-white/5 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:border-bitcoin/40 hover:bg-card/80 hover:shadow-[0_0_40px_rgba(247,147,26,0.08)]"
     >
-      {/* Status Badge */}
-      {(moonshot.status || isExported) && (
-        <div className="absolute top-4 right-4">
+      {/* Status & Trust Badges */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        {trustBadge && (
+          <span
+            className={`px-2.5 py-1 text-xs font-medium rounded-full border flex items-center gap-1 ${trustBadge.color}`}
+            title={`Trust Rank: ${trustRank}`}
+          >
+            <FiShield className="w-3 h-3" />
+            {trustBadge.label}
+          </span>
+        )}
+
+        {(moonshot.status || isExported) && (
           <span
             className={`px-3 py-1 text-xs font-medium rounded-full border ${
               statusStyles[isExported ? "exported" : moonshot.status] ||
@@ -59,8 +73,8 @@ function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
           >
             {isExported ? "Exported to Angor" : moonshot.status}
           </span>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Creator Info */}
       <div className="flex items-center gap-3 mb-4">
@@ -78,19 +92,28 @@ function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
             />
           </div>
         )}
-        <span className="text-gray-300 text-sm font-medium">{creatorProfile?.name}</span>
-
-        {!creatorProfile?.name && (
-          <span className="text-gray-500 text-xs break-all max-w-90 leading-tight">
-            {nip19.npubEncode(moonshot.creatorPubkey)}
+        <div className="flex flex-col">
+          <span className="text-gray-300 text-sm font-medium">
+            {creatorProfile?.name || "Anonymous"}
           </span>
-        )}
+          {!creatorProfile?.name && (
+            <span className="text-gray-500 text-xs truncate max-w-37.5">
+              {nip19.npubEncode(moonshot.creatorPubkey)}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Title */}
       <h3 className="text-white font-bold text-xl mb-2 line-clamp-1 group-hover:text-bitcoin transition-colors">
         {moonshot.title}
       </h3>
+
+      {/* Short preview */}
+      <div
+        className="text-gray-300 line-clamp-3 mb-4 text-sm rich-text-viewer-sm"
+        dangerouslySetInnerHTML={{ __html: moonshot.content }}
+      />
 
       {/* Topics */}
       {moonshot.topics && moonshot.topics.length > 0 && (
@@ -115,7 +138,7 @@ function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mb-5">
         <div className="flex items-center gap-1.5">
           <FiZap className="text-bitcoin" />
-          <span>{moonshot.budget.toLocaleString()} sats</span>
+          <span>{parseInt(moonshot.budget).toLocaleString()} sats</span>
         </div>
 
         <div className="flex items-center gap-1.5 text-gray-500">
@@ -149,8 +172,6 @@ function MoonshotCard({ moonshot, isExported, onClick }: MoonshotCardProps) {
 export default MoonshotCard;
 
 function timeAgo(timestampMs: number) {
-  console.log("TIMESTAMP (ms):", timestampMs);
-  
   const seconds = Math.floor((Date.now() - timestampMs) / 1000);
 
   const intervals = [

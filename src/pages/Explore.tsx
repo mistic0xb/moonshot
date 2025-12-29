@@ -5,6 +5,7 @@ import { useExportedMoonshots } from "../context/ExportedMoonshotContext";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { Moonshot } from "../types/types";
+import { useTrustScores } from "../hooks/useTrustScores";
 
 const TOPICS = [
   "nostr",
@@ -21,7 +22,7 @@ const TOPICS = [
   "lnurl",
 ];
 
-type SortOption = "newest" | "oldest" | "budget-high" | "budget-low";
+type SortOption = "trust" | "newest" | "oldest" | "budget-high" | "budget-low";
 
 function Explore() {
   const navigate = useNavigate();
@@ -29,11 +30,12 @@ function Explore() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [sortBy, setSortBy] = useState<SortOption>("trust");
   const [showFilters, setShowFilters] = useState(false);
 
+  // Fetch moonshots
   const {
-    isPending,
+    isPending: moonshotsLoading,
     isError,
     data,
     error: err,
@@ -41,6 +43,15 @@ function Explore() {
     queryKey: ["all-moonshots"],
     queryFn: fetchAllMoonshots,
   });
+
+  // Extract unique pubkeys from moonshots
+  const pubkeys = useMemo(() => {
+    if (!data) return [];
+    return [...new Set(data.map(m => m.creatorPubkey))];
+  }, [data]);
+
+  // Fetch trust scores for all creators
+  const { data: trustScores, isPending: trustLoading } = useTrustScores(pubkeys);
 
   const toggleTopic = (topic: string) => {
     setSelectedTopics(prev =>
@@ -51,7 +62,7 @@ function Explore() {
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedTopics([]);
-    setSortBy("newest");
+    setSortBy("trust");
   };
 
   const filteredAndSortedMoonshots: Moonshot[] = useMemo(() => {
@@ -59,13 +70,10 @@ function Explore() {
 
     let filtered = data.filter(moonshot => moonshot?.isExplorable !== false);
 
-    // Search by title 
+    // Search by title
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        moonshot =>
-          moonshot.title.toLowerCase().includes(query) 
-      );
+      filtered = filtered.filter(moonshot => moonshot.title.toLowerCase().includes(query));
     }
 
     // Filter by topics
@@ -78,6 +86,11 @@ function Explore() {
     // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
+        case "trust": {
+          const rankA = trustScores?.get(a.creatorPubkey)?.rank ?? 0;
+          const rankB = trustScores?.get(b.creatorPubkey)?.rank ?? 0;
+          return rankB - rankA; // Higher rank first
+        }
         case "newest":
           return b.createdAt - a.createdAt;
         case "oldest":
@@ -92,9 +105,9 @@ function Explore() {
     });
 
     return filtered;
-  }, [data, searchQuery, selectedTopics, sortBy]);
+  }, [data, searchQuery, selectedTopics, sortBy, trustScores]);
 
-  if (isPending) {
+  if (moonshotsLoading) {
     return (
       <div className="min-h-screen bg-dark pt-28 pb-16">
         <div className="max-w-6xl mx-auto px-4">
@@ -122,7 +135,7 @@ function Explore() {
   }
 
   const moonshots = data.filter(moonshot => moonshot?.isExplorable !== false);
-  const hasActiveFilters = searchQuery || selectedTopics.length > 0 || sortBy !== "newest";
+  const hasActiveFilters = searchQuery || selectedTopics.length > 0 || sortBy !== "trust";
 
   return (
     <div className="min-h-screen bg-dark pt-28 pb-16">
@@ -157,6 +170,7 @@ function Explore() {
               onChange={e => setSortBy(e.target.value as SortOption)}
               className="px-4 py-3 bg-blackish border border-gray-700/60 rounded-lg text-white focus:outline-none focus:border-yellow-600 transition-colors cursor-pointer"
             >
+              <option value="trust">Trust Rank</option>
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
               <option value="budget-high">Highest Budget</option>
@@ -209,17 +223,20 @@ function Explore() {
           )}
 
           {/* Active Filters Summary */}
-          {hasActiveFilters && (
+          {(hasActiveFilters || trustLoading) && (
             <div className="flex items-center justify-between bg-gray-800 border border-gray-700 rounded-lg px-4 py-2">
               <p className="text-gray-400 text-sm">
                 Showing {filteredAndSortedMoonshots.length} of {moonshots.length} moonshots
+                {trustLoading && " • Loading trust scores..."}
               </p>
-              <button
-                onClick={clearFilters}
-                className="text-sm text-bitcoin hover:text-orange-400 transition-colors font-medium"
-              >
-                Clear All Filters
-              </button>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-bitcoin hover:text-orange-400 transition-colors font-medium"
+                >
+                  Clear All Filters
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -253,12 +270,15 @@ function Explore() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredAndSortedMoonshots.map(moonshot => {
               const exported = isExported(moonshot.eventId);
+              const trustMetrics = trustScores?.get(moonshot.creatorPubkey);
+
               return (
                 <MoonshotCard
                   key={moonshot.id}
                   moonshot={moonshot}
                   isExported={exported}
                   onClick={() => navigate(`/moonshot/${moonshot.id}`)}
+                  trustRank={trustMetrics?.rank}
                 />
               );
             })}
