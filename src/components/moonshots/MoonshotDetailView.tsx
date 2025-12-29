@@ -40,7 +40,7 @@ function MoonshotDetailView({
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { getExportStatus } = useExportedMoonshots();
-  
+
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -48,7 +48,7 @@ function MoonshotDetailView({
   const [showBuilderDropdown, setShowBuilderDropdown] = useState(false);
   const [selectedBuilder, setSelectedBuilder] = useState<UserProfile | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const exportedStatus = getExportStatus(currentMoonshot.eventId);
 
@@ -81,7 +81,7 @@ function MoonshotDetailView({
     queryKey: ["interested-users", interestsQuery.data?.map(i => i.builderPubkey)],
     queryFn: async () => {
       if (!interestsQuery.data || interestsQuery.data.length === 0) return [];
-      
+
       const profiles = await Promise.all(
         interestsQuery.data.map(async interest => {
           try {
@@ -93,7 +93,7 @@ function MoonshotDetailView({
           }
         })
       );
-      
+
       return profiles.filter((p): p is UserProfile => p !== null);
     },
     enabled: !!interestsQuery.data && interestsQuery.data.length > 0,
@@ -112,12 +112,12 @@ function MoonshotDetailView({
   }, []);
 
   const handleEditMoonshot = async (updatedData: {
-      title: string;
-      content: string;
-      budget: string;
-      topics: string[];
-      status: string;
-    }) => {
+    title: string;
+    content: string;
+    budget: string;
+    topics: string[];
+    status: string;
+  }) => {
     try {
       await updateMoonshot(
         currentMoonshot.id,
@@ -141,11 +141,11 @@ function MoonshotDetailView({
         ...updatedData,
       };
       setCurrentMoonshot(updatedMoonshot);
-      
+
       if (onMoonshotUpdate) {
         onMoonshotUpdate(updatedMoonshot);
       }
-      
+
       setShowEditDialog(false);
       showToast("Moonshot updated successfully!", "success");
     } catch (error) {
@@ -159,7 +159,7 @@ function MoonshotDetailView({
       setIsDeleting(true);
       await removeMoonshot(currentMoonshot);
       setShowDeleteDialog(false);
-      
+
       if (onMoonshotDeleted) {
         onMoonshotDeleted();
       }
@@ -196,7 +196,7 @@ function MoonshotDetailView({
   const comments = commentsQuery.data ?? [];
   const interestedUsersMetadata = interestedUsersQuery.data ?? [];
   const totalChipIn = comments.length > 0 ? calculateTotalChipIn(comments) : 0;
-  
+
   const loading = interestsQuery.isPending;
   const loadingVersions = versionsQuery.isPending;
 
@@ -342,9 +342,10 @@ function MoonshotDetailView({
             </div>
 
             {/* Short preview */}
-            <div className="text-[13px] text-gray-300 line-clamp-4 whitespace-pre-wrap">
-              {currentMoonshot.content}
-            </div>
+            <div
+              className="text-gray-300 line-clamp-4 rich-text-viewer rich-text-viewer-sm"
+              dangerouslySetInnerHTML={{ __html: currentMoonshot.content }}
+            />
           </div>
 
           {exportedStatus?.isExported && (
