@@ -7,7 +7,7 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-blackish relative overflow-hidden">
-      {/* New hero section */}
+      {/* Hero section */}
       <section className="relative min-h-screen flex flex-col justify-center items-center pt-32 pb-20 overflow-hidden">
         {/* Background Gradient Orbs */}
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-bitcoin/20 rounded-full blur-[120px] pointer-events-none" />
@@ -20,21 +20,26 @@ function Home() {
               <span className="text-xs font-mono text-gray-300">powered by Nostr &amp; Angor</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight flex">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight flex items-center justify-center gap-2">
               LFG!
               <BsFillRocketTakeoffFill />
-              <br />
             </h1>
 
             <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Market place for ideas and builders. <br />
-              Have something that should exist but doest? post
-              it as a moonshot ! or <br />
-              Wanna build cool sh#t that people want - explore and build it;
-              for real money(Sats).
+              A marketplace for <span className="text-white font-medium">ideas</span> and{" "}
+              <span className="text-white font-medium">builders</span>.
+              <br />
+              <span className="block mt-2">
+                Have something that should exist but doesn’t?
+                <span className="text-bitcoin font-medium"> Ship it as a Moonshot.</span>
+              </span>
+              <span className="block mt-2">
+                Want to build cool sh#t people actually want?
+                <span className="text-bitcoin font-medium"> Explore, build, earn Sats.</span>
+              </span>
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-16">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
               <button
                 onClick={() => navigate("/create")}
                 className="group w-full sm:w-auto bg-bitcoin hover:bg-orange-400 text-black font-semibold py-3 px-8 text-sm md:text-base rounded-full tracking-wide transition-all duration-300 hover:shadow-[0_0_35px_rgba(247,147,26,0.5)] flex items-center justify-center gap-2 cursor-pointer"
@@ -52,15 +57,17 @@ function Home() {
             </div>
 
             <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500 font-mono">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <FiZap className="w-4 h-4 text-bitcoin" />
                 <span>Lightning Fast</span>
               </div>
-              <div className="flex items-center space-x-2">
+
+              <div className="flex items-center gap-2">
                 <BsShieldCheck className="w-4 h-4 text-purple-500" />
                 <span>Censorship Resistant</span>
               </div>
-              <div className="flex items-center space-x-2">
+
+              <div className="flex items-center gap-2">
                 <BsCheckCircle className="w-4 h-4 text-green-500" />
                 <span>Peer-to-Peer</span>
               </div>
@@ -70,6 +77,7 @@ function Home() {
 
         {/* Abstract Grid Floor */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-dark to-transparent z-20 pointer-events-none" />
+
         <div
           className="absolute inset-0 grid-bg opacity-20 z-0 pointer-events-none"
           style={{
