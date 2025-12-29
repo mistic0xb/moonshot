@@ -150,3 +150,277 @@ body {
   border-radius: 4px;
   border: none;
 }
+
+
+/* quill text editor */
+/* Quill Editor - Fixed height */
+.ql-container {
+  @apply bg-black/60 text-gray-100;
+  font-size: 16px;
+  height: 100%;
+}
+
+.ql-editor {
+  @apply text-gray-100;
+  font-size: 16px;
+  height: 100%;
+}
+
+/* Make quill wrapper flex container */
+.quill-wrapper {
+  @apply rounded border border-white/10 bg-black/40 overflow-hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.quill-wrapper .ql-toolbar {
+  flex-shrink: 0;
+}
+
+.quill-wrapper .ql-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.quill-wrapper .ql-editor {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.ql-editor.ql-blank::before {
+  @apply text-gray-600;
+  font-style: normal;
+}
+
+/* Quill Toolbar */
+.ql-toolbar {
+  @apply bg-black/40 border-0 border-b border-white/10;
+}
+
+.ql-toolbar .ql-stroke {
+  stroke: #a5a5a5 !important;
+}
+
+.ql-toolbar .ql-fill {
+  fill: #d1d5db !important;
+}
+
+.ql-toolbar .ql-picker-label {
+  @apply text-gray-300;
+}
+
+.ql-toolbar button:hover,
+.ql-toolbar button:focus,
+.ql-toolbar button.ql-active {
+  @apply text-bitcoin;
+}
+
+.ql-toolbar button:hover .ql-stroke,
+.ql-toolbar button.ql-active .ql-stroke {
+  stroke: #f7931a !important;
+}
+
+.ql-toolbar button:hover .ql-fill,
+.ql-toolbar button.ql-active .ql-fill {
+  fill: #f7931a !important;
+}
+
+/* Quill Dropdowns */
+.ql-picker-options {
+  @apply bg-black/90 border border-white/10;
+}
+
+.ql-picker-item {
+  @apply text-gray-300;
+}
+
+.ql-picker-item:hover {
+  @apply text-bitcoin bg-white/5;
+}
+
+.ql-picker-label:hover {
+  @apply text-bitcoin;
+}
+
+.ql-picker-label:hover .ql-stroke {
+  stroke: #f7931a !important;
+}
+
+/* Editor Content Styling */
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3 {
+  @apply text-white font-bold;
+}
+
+.ql-editor h1 {
+  font-size: 2em;
+  margin-top: 0.67em;
+  margin-bottom: 0.67em;
+}
+
+.ql-editor h2 {
+  font-size: 1.5em;
+  margin-top: 0.83em;
+  margin-bottom: 0.83em;
+}
+
+.ql-editor h3 {
+  font-size: 1.17em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.ql-editor p {
+  @apply text-gray-300;
+  font-size: 16px;
+  margin-bottom: 1em;
+}
+
+.ql-editor a {
+  @apply text-bitcoin underline;
+}
+
+.ql-editor blockquote {
+  @apply border-l-4 border-bitcoin/50 pl-4 text-gray-400 italic;
+  margin: 1em 0;
+}
+
+.ql-editor pre {
+  @apply bg-black/80 text-gray-300 rounded-lg p-3;
+}
+
+.ql-editor code {
+  @apply bg-white/10 text-bitcoin px-1 py-0.5 rounded;
+}
+
+.ql-editor ul,
+.ql-editor ol {
+  @apply text-gray-300;
+  font-size: 16px;
+  margin-left: 1.5em;
+}
+
+.ql-editor li {
+  font-size: 16px;
+}
+
+.ql-editor strong {
+  @apply text-white;
+}
+
+/* Quill Snow Theme Border Fix */
+.ql-container.ql-snow {
+  border: none !important;
+}
+
+/* Tooltip */
+.ql-tooltip {
+  @apply bg-black/90 border border-white/10 text-gray-300;
+}
+
+.ql-tooltip input[type="text"] {
+  @apply bg-black/60 border border-white/10 text-gray-100;
+}
+
+.ql-tooltip a.ql-action::after,
+.ql-tooltip a.ql-remove::before {
+  @apply text-bitcoin;
+}
+
+/* rich text editor viewer */
+/* Rich Text Viewer Styles */
+.rich-text-viewer {
+  @apply text-gray-300 leading-relaxed;
+  font-size: 16px;
+}
+
+.rich-text-viewer h1,
+.rich-text-viewer h2,
+.rich-text-viewer h3 {
+  @apply text-white font-bold;
+}
+
+.rich-text-viewer h1 {
+  font-size: 2em;
+  margin-top: 0.67em;
+  margin-bottom: 0.67em;
+}
+
+.rich-text-viewer h2 {
+  font-size: 1.5em;
+  margin-top: 0.83em;
+  margin-bottom: 0.83em;
+}
+
+.rich-text-viewer h3 {
+  font-size: 1.17em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.rich-text-viewer p {
+  font-size: 16px;
+  margin-bottom: 1em;
+}
+
+.rich-text-viewer a {
+  @apply text-bitcoin underline hover:text-bitcoin/80;
+}
+
+.rich-text-viewer blockquote {
+  @apply border-l-4 border-bitcoin/50 pl-4 text-gray-400 italic;
+  margin: 1em 0;
+  font-size: 16px;
+}
+
+.rich-text-viewer ul,
+.rich-text-viewer ol {
+  margin-left: 1.5em;
+  margin-bottom: 1em;
+  font-size: 16px;
+}
+
+.rich-text-viewer li {
+  margin-bottom: 0.25em;
+  font-size: 16px;
+}
+
+.rich-text-viewer strong {
+  @apply text-white font-semibold;
+}
+
+.rich-text-viewer code {
+  @apply bg-white/10 text-bitcoin px-1.5 py-0.5 rounded;
+  font-size: 14px;
+}
+
+.rich-text-viewer pre {
+  @apply bg-black/80 text-gray-300 rounded-lg p-3 overflow-x-auto;
+  font-size: 14px;
+}
+
+.rich-text-viewer img {
+  @apply rounded-lg border border-white/10 max-w-full h-auto;
+}
+
+/* moonshot detail view */
+.rich-text-viewer-sm p,
+.rich-text-viewer-sm li,
+.rich-text-viewer-sm blockquote,
+.rich-text-viewer-sm {
+  font-size: 13px !important;
+}
+
+.rich-text-viewer-sm h1 {
+  font-size: 1.6em !important;
+}
+
+.rich-text-viewer-sm h2 {
+  font-size: 1.3em !important;
+}
+
+.rich-text-viewer-sm h3 {
+  font-size: 1.1em !important;
+}
