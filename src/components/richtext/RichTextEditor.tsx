@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -34,6 +35,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
     "link",
   ];
 
+  const QuillEditor = ReactQuill as any;
   return (
     <div className="space-y-3">
       {/* Toggle button for mobile */}
@@ -54,7 +56,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
             Rich Text Editor
           </label>
           <div className="quill-wrapper h-100 flex flex-col">
-            <ReactQuill
+            <QuillEditor
               theme="snow"
               value={content}
               onChange={onChange}
