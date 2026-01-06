@@ -53,7 +53,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
           <label className="block text-xs font-semibold uppercase tracking-wide text-gray-300 mb-2">
             Rich Text Editor
           </label>
-          <div className="quill-wrapper h-[400px] flex flex-col">
+          <div className="quill-wrapper h-100 flex flex-col">
             <ReactQuill
               theme="snow"
               value={content}
@@ -71,7 +71,7 @@ export default function RichTextEditor({ content, onChange }: Props) {
           <label className="block text-xs font-semibold uppercase tracking-wide text-gray-300 mb-2">
             Live Preview
           </label>
-          <div className="rounded border border-white/10 bg-black/40 p-4 h-[400px] overflow-y-auto scrollbar-thin">
+          <div className="rounded border border-white/10 bg-black/40 p-4 h-100 overflow-y-auto scrollbar-thin">
             {/* Rich Text Viewer */}
             <div
               className="rich-text-viewer"

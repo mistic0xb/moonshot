@@ -3,6 +3,7 @@ import { getPool } from './pool';
 import { DEFAULT_RELAYS } from './relayConfig';
 import type { AngorProjectExport, Moonshot, ProofOfWorkLink } from '../../types/types';
 import type { Event } from 'nostr-tools';
+import { htmlToMarkdown } from '../convertHtmlMd';
 
 // Publish moonshot event (kind 30078)
 export async function publishMoonshot(
@@ -29,11 +30,13 @@ export async function publishMoonshot(
         ["isExplorable", "true"]
     ];
 
+    // convert html content to markdown
+    const markdownContent = htmlToMarkdown(content);
     const event = {
         kind: 30078,
         created_at: Math.floor(Date.now() / 1000),
         tags: eventTags,
-        content: content,
+        content: markdownContent,
     };
 
     console.log("Publishing moonshot event:", event);

@@ -4,6 +4,7 @@ import type { ExportedMoonshot, Moonshot } from "../../types/types";
 import { getPool } from "./pool";
 import { DEFAULT_RELAYS } from "./relayConfig";
 import type { SubCloser } from "nostr-tools/abstract-pool";
+import { markdownToHtml } from "../convertHtmlMd";
 
 // Fetch all moonshot events
 export async function fetchAllMoonshots(): Promise<Moonshot[]> {
@@ -51,7 +52,7 @@ export async function fetchAllMoonshots(): Promise<Moonshot[]> {
                         id: dTag[1],
                         eventId: event.id,
                         title: titleTag[1],
-                        content: event.content,
+                        content: markdownToHtml(event.content),
                         budget: budgetTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [], // Get all topics after tag name
                         status: (statusTag?.[1] as string) || "open",
@@ -117,7 +118,7 @@ export async function fetchAllMoonshotsByCreator(creatorPubkey: string): Promise
                         id: dTag[1],
                         eventId: event.id,
                         title: titleTag[1],
-                        content: event.content,
+                        content: markdownToHtml(event.content),
                         budget: budgetTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [], // Get all topics after tag name
                         status: (statusTag?.[1] as string) || "open",
@@ -185,7 +186,7 @@ export async function fetchMoonshotById(moonshotId: string): Promise<Moonshot | 
                         id: dTag[1],
                         eventId: event.id,
                         title: titleTag[1],
-                        content: event.content,
+                        content: markdownToHtml(event.content),
                         budget: budgetTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [],
                         status: (statusTag?.[1] as string) || "open",
@@ -248,7 +249,7 @@ export async function fetchMoonshotVersions(moonshotId: string, creatorPubkey: s
                         id: dTag[1],
                         eventId: eventRefTag?.[1] || event.id,
                         title: titleTag[1],
-                        content: event.content,
+                        content: markdownToHtml(event.content),
                         budget: budgetTag?.[1] || "TBD",
                         topics: topicsTag ? topicsTag.slice(1) : [],
                         status: (statusTag?.[1] as string) || "open",
